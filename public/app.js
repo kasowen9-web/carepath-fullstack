@@ -5,8 +5,22 @@ async function postJSON(url,body){const res=await fetch(url,{method:"POST",heade
 function setView(view){
   document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
   document.querySelectorAll(".nav-btn").forEach(v=>v.classList.remove("active"));
-  if(view==="dashboard"){byId("dashboard-view").classList.add("active");document.querySelector('[data-view="dashboard"]').classList.add("active");}
-  else{byId("checkin-view").classList.add("active");document.querySelector('[data-view="patient-checkin"]').classList.add("active");}
+  if(view==="dashboard"){
+    byId("dashboard-view").classList.add("active");
+    document.querySelector('[data-view="dashboard"]').classList.add("active");
+    byId("view-title").textContent="Nurse Dashboard";
+    byId("view-subtitle").textContent="Execution visibility after discharge";
+  } else if(view==="patient-checkin"){
+    byId("checkin-view").classList.add("active");
+    document.querySelector('[data-view="patient-checkin"]').classList.add("active");
+    byId("view-title").textContent="Patient Daily Check-In";
+    byId("view-subtitle").textContent="Simple daily monitoring for CHF";
+  } else {
+    byId("enroll-view").classList.add("active");
+    document.querySelector('[data-view="enroll-patient"]').classList.add("active");
+    byId("view-title").textContent="Enroll Patient";
+    byId("view-subtitle").textContent="Add a patient to the CarePath workflow";
+  }
 }
 document.querySelectorAll(".nav-btn").forEach(btn=>btn.addEventListener("click",()=>setView(btn.dataset.view)));
 function renderSummary(summary){
@@ -51,5 +65,25 @@ byId("checkin-form").addEventListener("submit",async(e)=>{
   const response=await postJSON("/api/checkins",payload);
   const result=byId("checkin-result");result.classList.add("show");result.textContent=`Thank you. Status: ${response.status.status}`;
   e.target.reset();await refresh();setView("dashboard");
+});
+byId("enroll-form").addEventListener("submit",async(e)=>{
+  e.preventDefault();
+  const payload={
+    name: byId("enrollName").value,
+    phone: byId("enrollPhone").value,
+    diagnosis: byId("enrollDiagnosis").value,
+    dischargeDate: byId("enrollDischargeDate").value,
+    baselineWeight: byId("enrollBaselineWeight").value,
+    criticalMeds: byId("enrollCriticalMeds").value,
+    assignedNurse: byId("enrollAssignedNurse").value,
+    provider: byId("enrollProvider").value
+  };
+  const response=await postJSON("/api/patients",payload);
+  const result=byId("enroll-result");
+  result.classList.add("show");
+  result.textContent=`Patient added: ${response.patient.name}`;
+  e.target.reset();
+  await refresh();
+  setView("dashboard");
 });
 refresh();
