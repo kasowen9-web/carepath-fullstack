@@ -1,0 +1,41 @@
+:root{
+  --navy:#0b1f3a; --blue:#2165d5; --soft:#eef4ff; --line:#d8e1f0; --text:#0f172a; --muted:#64748b; --bg:#f6f9fc; --white:#ffffff; --red:#dc2626; --yellow:#d97706; --green:#16a34a;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text)}
+.shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+.sidebar{background:linear-gradient(180deg,#0b1f3a 0%, #15315b 100%);color:white;padding:24px 20px}
+.brand{display:flex;gap:14px;align-items:center;margin-bottom:28px}
+.logo{width:46px;height:46px;border-radius:14px;background:#ffffff20;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700}
+.brand h1{margin:0;font-size:24px}
+.brand p{margin:2px 0 0;color:#d9e6ff;font-size:13px}
+.nav-btn{width:100%;border:none;padding:14px 16px;border-radius:14px;margin-bottom:10px;background:#ffffff10;color:white;text-align:left;font-size:15px;cursor:pointer}
+.nav-btn.active{background:white;color:var(--navy);font-weight:700}
+.main{padding:28px}
+.topbar h2{margin:0;font-size:30px}
+.topbar p{margin:6px 0 0;color:var(--muted)}
+.view{display:none}
+.view.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:22px 0}
+.card{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:20px}
+.card .label{color:var(--muted);font-size:13px}
+.card .value{font-size:34px;font-weight:800;margin-top:8px}
+.panel{background:var(--white);border:1px solid var(--line);border-radius:22px;padding:22px;margin-bottom:18px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.patient-table{width:100%;border-collapse:collapse}
+.patient-table th,.patient-table td{padding:14px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}
+.badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;color:white}
+.badge.Red{background:var(--red)}
+.badge.Yellow{background:var(--yellow)}
+.badge.Green{background:var(--green)}
+.primary,.secondary,.danger{border:none;border-radius:14px;padding:10px 14px;cursor:pointer;font-weight:700}
+.primary{background:var(--blue);color:white}
+.secondary{background:#e8eefc;color:#12315f}
+.danger{background:#fee2e2;color:#991b1b}
+.task{border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px;background:#fbfdff}
+.task-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.form-panel{max-width:700px}
+label{display:block;font-weight:600;font-size:14px;margin-bottom:14px}
+input,select{display:block;width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;margin-top:8px;background:white;font:inherit}
+.result{margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--soft);display:none}
+.result.show{display:block}

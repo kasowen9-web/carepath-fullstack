@@ -1,0 +1,85 @@
+{
+  "patients": [
+    {
+      "id": "p1",
+      "name": "Mary Johnson",
+      "phone": "(555) 123-0001",
+      "diagnosis": "CHF",
+      "dischargeDate": "2026-04-10",
+      "baselineWeight": 160,
+      "criticalMeds": [
+        "Lasix"
+      ],
+      "assignedNurse": "Nurse A",
+      "provider": "Dr. Smith"
+    },
+    {
+      "id": "p2",
+      "name": "Robert Lee",
+      "phone": "(555) 123-0002",
+      "diagnosis": "CHF",
+      "dischargeDate": "2026-04-11",
+      "baselineWeight": 188,
+      "criticalMeds": [
+        "Lasix"
+      ],
+      "assignedNurse": "Nurse A",
+      "provider": "Dr. Smith"
+    },
+    {
+      "id": "p3",
+      "name": "Angela Davis",
+      "phone": "(555) 123-0003",
+      "diagnosis": "CHF",
+      "dischargeDate": "2026-04-12",
+      "baselineWeight": 145,
+      "criticalMeds": [
+        "Lasix"
+      ],
+      "assignedNurse": "Nurse B",
+      "provider": "Dr. Jones"
+    },
+    {
+      "id": "p4",
+      "name": "James Carter",
+      "phone": "(555) 123-0004",
+      "diagnosis": "CHF",
+      "dischargeDate": "2026-04-13",
+      "baselineWeight": 172,
+      "criticalMeds": [
+        "Lasix"
+      ],
+      "assignedNurse": "Nurse B",
+      "provider": "Dr. Smith"
+    },
+    {
+      "id": "p5",
+      "name": "Linda Martinez",
+      "phone": "(555) 123-0005",
+      "diagnosis": "CHF",
+      "dischargeDate": "2026-04-12",
+      "baselineWeight": 154,
+      "criticalMeds": [
+        "Lasix"
+      ],
+      "assignedNurse": "Nurse A",
+      "provider": "Dr. Jones"
+    },
+    {
+      "id": "p6",
+      "name": "David Walker",
+      "phone": "(555) 123-0006",
+      "diagnosis": "CHF",
+      "dischargeDate": "2026-04-11",
+      "baselineWeight": 201,
+      "criticalMeds": [
+        "Lasix"
+      ],
+      "assignedNurse": "Nurse C",
+      "provider": "Dr. Patel"
+    }
+  ],
+  "checkins": [],
+  "tasks": [],
+  "notes": []
+}
