@@ -1,49 +1,49 @@
 <!DOCTYPE html>
-<html lang=\"en\">
+<html lang="en">
 <head>
-  <meta charset=\"UTF-8\" />
-  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CarePath Prototype</title>
-  <link rel=\"stylesheet\" href=\"/styles.css\" />
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <div class=\"shell\">
-    <aside class=\"sidebar\">
-      <div class=\"brand\">
-        <div class=\"logo\">C</div>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">C</div>
         <div>
           <h1>CarePath</h1>
           <p>Care execution platform</p>
         </div>
       </div>
       <nav>
-        <button class=\"nav-btn active\" data-view=\"dashboard\">Dashboard</button>
-        <button class=\"nav-btn\" data-view=\"patient-checkin\">Patient Check-In</button>
-        <button class=\"nav-btn\" data-view=\"enroll-patient\">Enroll Patient</button>
+        <button class="nav-btn active" data-view="dashboard">Dashboard</button>
+        <button class="nav-btn" data-view="patient-checkin">Patient Check-In</button>
+        <button class="nav-btn" data-view="enroll-patient">Enroll Patient</button>
       </nav>
     </aside>
 
-    <main class=\"main\">
-      <header class=\"topbar\">
-        <h2 id=\"view-title\">Nurse Dashboard</h2>
-        <p id=\"view-subtitle\">Execution visibility after discharge</p>
+    <main class="main">
+      <header class="topbar">
+        <h2 id="view-title">Nurse Dashboard</h2>
+        <p id="view-subtitle">Execution visibility after discharge</p>
       </header>
 
-      <section id=\"dashboard-view\" class=\"view active\">
-        <div class=\"cards\" id=\"summary-cards\"></div>
+      <section id="dashboard-view" class="view active">
+        <div class="cards" id="summary-cards"></div>
 
-        <div class=\"panel\">
-          <div class=\"panel-head\">
+        <div class="panel">
+          <div class="panel-head">
             <h3>Open Escalation Tasks</h3>
           </div>
-          <div id=\"task-list\"></div>
+          <div id="task-list"></div>
         </div>
 
-        <div class=\"panel\">
-          <div class=\"panel-head\">
+        <div class="panel">
+          <div class="panel-head">
             <h3>Patient Queue</h3>
           </div>
-          <table class=\"patient-table\">
+          <table class="patient-table">
             <thead>
               <tr>
                 <th>Patient</th>
@@ -52,80 +52,80 @@
                 <th>Discharge</th>
               </tr>
             </thead>
-            <tbody id=\"patient-rows\"></tbody>
+            <tbody id="patient-rows"></tbody>
           </table>
         </div>
       </section>
 
-      <section id=\"checkin-view\" class=\"view\">
-        <div class=\"panel\">
+      <section id="checkin-view" class="view">
+        <div class="panel">
           <h3>Welcome to CarePath</h3>
           <p>We’ll check in with you daily to help you stay on track with your care plan after leaving the hospital.</p>
           <p><strong>Today’s check-in takes less than 1 minute.</strong></p>
         </div>
 
-        <form id=\"checkin-form\" class=\"panel form-panel\">
+        <form id="checkin-form" class="panel form-panel">
           <h3>Daily Check-In</h3>
           <label>Patient
-            <select id=\"patientId\"></select>
+            <select id="patientId"></select>
           </label>
           <label>Weight today
-            <input type=\"number\" id=\"weight\" step=\"0.1\" required />
+            <input type="number" id="weight" step="0.1" required />
           </label>
           <label>Did you take your medications?
-            <select id=\"medsTaken\"><option>Yes</option><option>No</option></select>
+            <select id="medsTaken"><option>Yes</option><option>No</option></select>
           </label>
           <label>Shortness of breath
-            <select id=\"shortnessOfBreath\"><option>None</option><option>Mild</option><option>Moderate</option><option>Severe</option></select>
+            <select id="shortnessOfBreath"><option>None</option><option>Mild</option><option>Moderate</option><option>Severe</option></select>
           </label>
           <label>Swelling
-            <select id=\"swelling\"><option>None</option><option>Mild</option><option>Moderate</option><option>Severe</option></select>
+            <select id="swelling"><option>None</option><option>Mild</option><option>Moderate</option><option>Severe</option></select>
           </label>
           <label>Dizziness?
-            <select id=\"dizziness\"><option>No</option><option>Yes</option></select>
+            <select id="dizziness"><option>No</option><option>Yes</option></select>
           </label>
           <label>Chest pain?
-            <select id=\"chestPain\"><option>No</option><option>Yes</option></select>
+            <select id="chestPain"><option>No</option><option>Yes</option></select>
           </label>
-          <button class=\"primary\" type=\"submit\">Submit Check-In</button>
-          <div id=\"checkin-result\" class=\"result\"></div>
+          <button class="primary" type="submit">Submit Check-In</button>
+          <div id="checkin-result" class="result"></div>
         </form>
       </section>
 
-      <section id=\"enroll-view\" class=\"view\">
-        <form id=\"enroll-form\" class=\"panel form-panel\">
+      <section id="enroll-view" class="view">
+        <form id="enroll-form" class="panel form-panel">
           <h3>Enroll Patient</h3>
           <label>Name
-            <input type=\"text\" id=\"enrollName\" required />
+            <input type="text" id="enrollName" required />
           </label>
           <label>Phone
-            <input type=\"text\" id=\"enrollPhone\" />
+            <input type="text" id="enrollPhone" />
           </label>
           <label>Diagnosis
-            <input type=\"text\" id=\"enrollDiagnosis\" value=\"CHF\" />
+            <input type="text" id="enrollDiagnosis" value="CHF" />
           </label>
           <label>Discharge Date
-            <input type=\"date\" id=\"enrollDischargeDate\" />
+            <input type="date" id="enrollDischargeDate" />
           </label>
           <label>Baseline Weight
-            <input type=\"number\" id=\"enrollBaselineWeight\" step=\"0.1\" />
+            <input type="number" id="enrollBaselineWeight" step="0.1" />
           </label>
           <label>Critical Meds (comma separated)
-            <input type=\"text\" id=\"enrollCriticalMeds\" placeholder=\"Lasix, beta blocker\" />
+            <input type="text" id="enrollCriticalMeds" placeholder="Lasix, beta blocker" />
           </label>
           <label>Assigned Nurse
-            <input type=\"text\" id=\"enrollAssignedNurse\" />
+            <input type="text" id="enrollAssignedNurse" />
           </label>
           <label>Provider
-            <input type=\"text\" id=\"enrollProvider\" />
+            <input type="text" id="enrollProvider" />
           </label>
-          <button class=\"primary\" type=\"submit\">Save Patient</button>
-          <div id=\"enroll-result\" class=\"result\"></div>
+          <button class="primary" type="submit">Save Patient</button>
+          <div id="enroll-result" class="result"></div>
         </form>
       </section>
     </main>
   </div>
 
-  <script src=\"/app.js\"></script>
+  <script src="/app.js"></script>
 </body>
 </html>
