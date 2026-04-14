@@ -1,4 +1,3 @@
-
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
@@ -16,14 +15,30 @@ function loadDb() {
   return JSON.parse(fs.readFileSync(DATA_PATH, "utf8"));
 }
 
-function saveDb(db) {
-  fs.writeFileSync(DATA_PATH, JSON.stringify(db, null, 2));
+// Load file-based data once at startup
+const fileDb = loadDb();
+
+// In-memory store for newly enrolled patients and runtime updates
+const memoryDb = {
+  patients: [],
+  checkins: [],
+  tasks: [],
+  notes: []
+};
+
+function getDb() {
+  return {
+    patients: [...fileDb.patients, ...memoryDb.patients],
+    checkins: [...fileDb.checkins, ...memoryDb.checkins],
+    tasks: [...fileDb.tasks, ...memoryDb.tasks],
+    notes: [...fileDb.notes, ...memoryDb.notes]
+  };
 }
 
 function computeStatus(patient, checkins) {
   const latest = checkins
     .filter(c => c.patientId === patient.id)
-    .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
 
   if (!latest) {
     return { status: "Yellow", reason: "No check-in yet" };
@@ -31,7 +46,7 @@ function computeStatus(patient, checkins) {
 
   const patientHistory = checkins
     .filter(c => c.patientId === patient.id)
-    .sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
+    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
   let weightChange24h = 0;
   let weightChange7d = 0;
@@ -45,7 +60,10 @@ function computeStatus(patient, checkins) {
     weightChange7d = Number((latest.weight - patient.baselineWeight).toFixed(1));
   }
 
-  const missedCritical = latest.medsTaken === "No" && Array.isArray(patient.criticalMeds) && patient.criticalMeds.length > 0;
+  const missedCritical =
+    latest.medsTaken === "No" &&
+    Array.isArray(patient.criticalMeds) &&
+    patient.criticalMeds.length > 0;
 
   if (
     latest.chestPain === "Yes" ||
@@ -54,7 +72,7 @@ function computeStatus(patient, checkins) {
     weightChange7d >= 5 ||
     missedCritical
   ) {
-    let reasons = [];
+    const reasons = [];
     if (latest.chestPain === "Yes") reasons.push("Chest pain");
     if (latest.shortnessOfBreath === "Severe") reasons.push("Severe shortness of breath");
     if (weightChange24h >= 3) reasons.push(`Weight +${weightChange24h} lb / 24h`);
@@ -64,14 +82,18 @@ function computeStatus(patient, checkins) {
   }
 
   if (
-    ["Mild","Moderate"].includes(latest.shortnessOfBreath) ||
-    ["Mild","Moderate"].includes(latest.swelling) ||
+    ["Mild", "Moderate"].includes(latest.shortnessOfBreath) ||
+    ["Mild", "Moderate"].includes(latest.swelling) ||
     latest.dizziness === "Yes" ||
     latest.medsTaken === "No"
   ) {
-    let reasons = [];
-    if (["Mild","Moderate"].includes(latest.shortnessOfBreath)) reasons.push(`${latest.shortnessOfBreath} shortness of breath`);
-    if (["Mild","Moderate"].includes(latest.swelling)) reasons.push(`${latest.swelling} swelling`);
+    const reasons = [];
+    if (["Mild", "Moderate"].includes(latest.shortnessOfBreath)) {
+      reasons.push(`${latest.shortnessOfBreath} shortness of breath`);
+    }
+    if (["Mild", "Moderate"].includes(latest.swelling)) {
+      reasons.push(`${latest.swelling} swelling`);
+    }
     if (latest.dizziness === "Yes") reasons.push("Dizziness");
     if (latest.medsTaken === "No") reasons.push("Missed medication");
     return { status: "Yellow", reason: reasons.join(", ") };
@@ -81,8 +103,12 @@ function computeStatus(patient, checkins) {
 }
 
 app.get("/api/summary", (req, res) => {
-  const db = loadDb();
-  const patientsWithStatus = db.patients.map(p => ({ ...p, computed: computeStatus(p, db.checkins) }));
+  const db = getDb();
+  const patientsWithStatus = db.patients.map(p => ({
+    ...p,
+    computed: computeStatus(p, db.checkins)
+  }));
+
   res.json({
     totalPatients: patientsWithStatus.length,
     red: patientsWithStatus.filter(p => p.computed.status === "Red").length,
@@ -93,35 +119,64 @@ app.get("/api/summary", (req, res) => {
 });
 
 app.get("/api/patients", (req, res) => {
-  const db = loadDb();
+  const db = getDb();
+
   const patients = db.patients.map(p => {
     const latestCheckin = db.checkins
       .filter(c => c.patientId === p.id)
-      .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt))[0] || null;
-    return { ...p, latestCheckin, computed: computeStatus(p, db.checkins) };
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0] || null;
+
+    return {
+      ...p,
+      latestCheckin,
+      computed: computeStatus(p, db.checkins)
+    };
   });
+
   const order = { Red: 0, Yellow: 1, Green: 2 };
-  patients.sort((a,b) => order[a.computed.status] - order[b.computed.status]);
+  patients.sort((a, b) => order[a.computed.status] - order[b.computed.status]);
+
   res.json(patients);
 });
 
-app.get("/api/patients/:id", (req, res) => {
-  const db = loadDb();
-  const patient = db.patients.find(p => p.id === req.params.id);
-  if (!patient) return res.status(404).json({ error: "Patient not found" });
-  const checkins = db.checkins.filter(c => c.patientId === patient.id).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-  const notes = db.notes.filter(n => n.patientId === patient.id).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-  res.json({ ...patient, computed: computeStatus(patient, db.checkins), checkins, notes });
+app.post("/api/patients", (req, res) => {
+  const body = req.body || {};
+
+  if (!body.name || !body.diagnosis) {
+    return res.status(400).json({ error: "Name and diagnosis are required." });
+  }
+
+  const patient = {
+    id: `p${Date.now()}`,
+    name: body.name,
+    phone: body.phone || "",
+    diagnosis: body.diagnosis || "CHF",
+    dischargeDate: body.dischargeDate || "",
+    baselineWeight: Number(body.baselineWeight || 0),
+    criticalMeds: Array.isArray(body.criticalMeds)
+      ? body.criticalMeds
+      : String(body.criticalMeds || "")
+          .split(",")
+          .map(s => s.trim())
+          .filter(Boolean),
+    assignedNurse: body.assignedNurse || "",
+    provider: body.provider || ""
+  };
+
+  memoryDb.patients.push(patient);
+
+  res.json({ ok: true, patient });
 });
 
 app.get("/api/tasks", (req, res) => {
-  const db = loadDb();
+  const db = getDb();
   res.json(db.tasks);
 });
 
 app.post("/api/checkins", (req, res) => {
-  const db = loadDb();
+  const db = getDb();
   const body = req.body;
+
   const checkin = {
     id: `checkin_${Date.now()}`,
     patientId: body.patientId,
@@ -133,11 +188,16 @@ app.post("/api/checkins", (req, res) => {
     chestPain: body.chestPain,
     createdAt: new Date().toISOString()
   };
-  db.checkins.push(checkin);
-  const patient = db.patients.find(p => p.id === body.patientId);
-  const computed = computeStatus(patient, db.checkins);
+
+  memoryDb.checkins.push(checkin);
+
+  const allPatients = [...fileDb.patients, ...memoryDb.patients];
+  const allCheckins = [...fileDb.checkins, ...memoryDb.checkins];
+  const patient = allPatients.find(p => p.id === body.patientId);
+  const computed = computeStatus(patient, allCheckins);
+
   if (computed.status !== "Green") {
-    db.tasks.push({
+    memoryDb.tasks.push({
       id: `task_${Date.now()}`,
       patientId: patient.id,
       priority: computed.status,
@@ -146,28 +206,19 @@ app.post("/api/checkins", (req, res) => {
       createdAt: new Date().toISOString()
     });
   }
-  saveDb(db);
+
   res.json({ ok: true, checkin, status: computed });
 });
 
-app.post("/api/notes", (req, res) => {
-  const db = loadDb();
-  const note = {
-    id: `note_${Date.now()}`,
-    patientId: req.body.patientId,
-    text: req.body.text,
-    createdAt: new Date().toISOString()
-  };
-  db.notes.push(note);
-  saveDb(db);
-  res.json({ ok: true, note });
-});
-
 app.post("/api/tasks/complete", (req, res) => {
-  const db = loadDb();
-  const task = db.tasks.find(t => t.id === req.body.id);
-  if (task) task.status = "closed";
-  saveDb(db);
+  const task = memoryDb.tasks.find(t => t.id === req.body.id);
+
+  if (task) {
+    task.status = "closed";
+    return res.json({ ok: true });
+  }
+
+  // If the task came from fileDb, just return ok for demo purposes
   res.json({ ok: true });
 });
 
