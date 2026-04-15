@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CarePath Patient Check-In</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body class="patient-page">
+  <main class="patient-shell">
+    <section class="patient-card">
+      <div class="patient-brand">
+        <div class="patient-logo">C</div>
+        <div>
+          <h1>CarePath</h1>
+          <p>Your daily care check-in</p>
+        </div>
+      </div>
+
+      <div id="patient-loading" class="patient-loading">Loading your check-in…</div>
+
+      <div id="patient-content" style="display: none;">
+        <header class="patient-header">
+          <h2 id="patient-name">Patient Name</h2>
+          <p id="patient-diagnosis">Diagnosis</p>
+        </header>
+
+        <div class="patient-panel">
+          <h3>Today’s Check-In</h3>
+          <p class="patient-subtext">
+            Please answer a few quick questions so your care team can stay updated.
+          </p>
+
+          <form id="patient-checkin-form" class="patient-form">
+            <label>
+              Weight today
+              <input type="number" id="weight" step="0.1" required />
+            </label>
+
+            <div id="medication-questions" class="patient-med-list"></div>
+
+            <label>
+              Shortness of breath
+              <select id="shortnessOfBreath">
+                <option>None</option>
+                <option>Mild</option>
+                <option>Moderate</option>
+                <option>Severe</option>
+              </select>
+            </label>
+
+            <label>
+              Swelling
+              <select id="swelling">
+                <option>None</option>
+                <option>Mild</option>
+                <option>Moderate</option>
+                <option>Severe</option>
+              </select>
+            </label>
+
+            <label>
+              Dizziness
+              <select id="dizziness">
+                <option>No</option>
+                <option>Yes</option>
+              </select>
+            </label>
+
+            <label>
+              Chest pain
+              <select id="chestPain">
+                <option>No</option>
+                <option>Yes</option>
+              </select>
+            </label>
+
+            <button type="submit" class="patient-submit">Submit Check-In</button>
+          </form>
+        </div>
+
+        <div id="patient-success" class="patient-success" style="display: none;">
+          <h3>Thank you</h3>
+          <p>Your check-in was submitted successfully.</p>
+          <p id="patient-success-detail"></p>
+        </div>
+      </div>
+
+      <div id="patient-error" class="patient-error" style="display: none;"></div>
+    </section>
+  </main>
+
+  <script src="/patient.js"></script>
+</body>
+</html>
