@@ -31,10 +31,27 @@
 
       <section id="dashboard-view" class="view active">
         <div id="summary-cards"></div>
-        <div id="task-list"></div>
-        <table>
-          <tbody id="patient-rows"></tbody>
-        </table>
+
+        <div class="panel">
+          <h3>Open Escalation Tasks</h3>
+          <div id="task-list"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Patient Queue</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Status</th>
+                <th>Latest signal</th>
+                <th>Discharge</th>
+              </tr>
+            </thead>
+            <tbody id="patient-rows"></tbody>
+          </table>
+        </div>
+
         <div id="patient-detail-panel" style="display:none;">
           <div id="patient-detail-content"></div>
         </div>
@@ -42,13 +59,50 @@
 
       <section id="checkin-view" class="view">
         <form id="checkin-form">
-          <select id="patientId"></select>
+          <h3>Daily Check-In</h3>
+
+          <label>Patient
+            <select id="patientId"></select>
+          </label>
+
           <div id="medication-questions"></div>
-          <input id="weight" />
-          <select id="shortnessOfBreath"></select>
-          <select id="swelling"></select>
-          <select id="dizziness"></select>
-          <select id="chestPain"></select>
+
+          <label>Weight
+            <input type="number" id="weight" />
+          </label>
+
+          <label>Shortness of breath
+            <select id="shortnessOfBreath">
+              <option>None</option>
+              <option>Mild</option>
+              <option>Moderate</option>
+              <option>Severe</option>
+            </select>
+          </label>
+
+          <label>Swelling
+            <select id="swelling">
+              <option>None</option>
+              <option>Mild</option>
+              <option>Moderate</option>
+              <option>Severe</option>
+            </select>
+          </label>
+
+          <label>Dizziness
+            <select id="dizziness">
+              <option>No</option>
+              <option>Yes</option>
+            </select>
+          </label>
+
+          <label>Chest Pain
+            <select id="chestPain">
+              <option>No</option>
+              <option>Yes</option>
+            </select>
+          </label>
+
           <button type="submit">Submit</button>
           <div id="checkin-result"></div>
         </form>
@@ -56,14 +110,40 @@
 
       <section id="enroll-view" class="view">
         <form id="enroll-form">
-          <input id="enrollName" />
-          <input id="enrollPhone" />
-          <input id="enrollDiagnosis" />
-          <input id="enrollDischargeDate" />
-          <input id="enrollBaselineWeight" />
-          <input id="enrollCriticalMeds" />
-          <input id="enrollAssignedNurse" />
-          <input id="enrollProvider" />
+          <h3>Enroll Patient</h3>
+
+          <label>Name
+            <input id="enrollName" />
+          </label>
+
+          <label>Phone
+            <input id="enrollPhone" />
+          </label>
+
+          <label>Diagnosis
+            <input id="enrollDiagnosis" value="CHF" />
+          </label>
+
+          <label>Discharge Date
+            <input type="date" id="enrollDischargeDate" />
+          </label>
+
+          <label>Baseline Weight
+            <input id="enrollBaselineWeight" />
+          </label>
+
+          <label>Critical Meds (comma separated)
+            <input id="enrollCriticalMeds" placeholder="Lasix, Metoprolol" />
+          </label>
+
+          <label>Assigned Nurse
+            <input id="enrollAssignedNurse" />
+          </label>
+
+          <label>Provider
+            <input id="enrollProvider" />
+          </label>
+
           <button type="submit">Save</button>
           <div id="enroll-result"></div>
         </form>
