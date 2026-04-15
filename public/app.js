@@ -21,7 +21,7 @@ async function postJSON(url, body) {
   });
   return res.json();
 }
-}
+
 
 function setView(view) {
   document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
