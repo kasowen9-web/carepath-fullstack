@@ -62,7 +62,7 @@ function getPatientIdFromUrl() {
 
 async function loadPatient() {
   try {
-    const patients = await getJSON("/api/patients");
+const patients = await getJSON(window.location.origin + "/api/patients");
     if (!Array.isArray(patients) || !patients.length) {
       throw new Error("No patients found.");
     }
