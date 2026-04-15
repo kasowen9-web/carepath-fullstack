@@ -39,3 +39,168 @@ label{display:block;font-weight:600;font-size:14px;margin-bottom:14px}
 input,select{display:block;width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:14px;margin-top:8px;background:white;font:inherit}
 .result{margin-top:14px;padding:12px 14px;border-radius:14px;background:var(--soft);display:none}
 .result.show{display:block}
+.patient-page {
+  margin: 0;
+  background: #f4f7fb;
+  font-family: Arial, sans-serif;
+  color: #0f172a;
+}
+
+.patient-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.patient-card {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border: 1px solid #dbe4f0;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.patient-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.patient-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: #0f2c57;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.patient-brand h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.patient-brand p,
+.patient-header p,
+.patient-subtext,
+.patient-loading {
+  margin: 4px 0 0;
+  color: #64748b;
+}
+
+.patient-header {
+  margin-bottom: 20px;
+}
+
+.patient-header h2 {
+  margin: 0 0 6px;
+  font-size: 30px;
+}
+
+.patient-panel {
+  border: 1px solid #dbe4f0;
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.patient-panel h3,
+.patient-success h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 24px;
+}
+
+.patient-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.patient-form label,
+.patient-med-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.patient-form input,
+.patient-form select,
+.patient-med-card select {
+  width: 100%;
+  box-sizing: border-box;
+  height: 48px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 0 14px;
+  font-size: 16px;
+  background: #fff;
+}
+
+.patient-med-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  background: #f8fafc;
+}
+
+.patient-med-card h4 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.patient-submit {
+  height: 48px;
+  border: none;
+  border-radius: 14px;
+  background: #0f2c57;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.patient-submit:hover {
+  opacity: 0.95;
+}
+
+.patient-success {
+  margin-top: 20px;
+  border: 1px solid #c7ead6;
+  background: #f0fdf4;
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.patient-error {
+  margin-top: 16px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+@media (max-width: 640px) {
+  .patient-card {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .patient-header h2 {
+    font-size: 26px;
+  }
+
+  .patient-brand h1 {
+    font-size: 24px;
+  }
+}
