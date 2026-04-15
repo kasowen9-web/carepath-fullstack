@@ -15,10 +15,8 @@ function loadDb() {
   return JSON.parse(fs.readFileSync(DATA_PATH, "utf8"));
 }
 
-// Load file-based data once at startup
 const fileDb = loadDb();
 
-// In-memory store for newly enrolled patients and runtime updates
 const memoryDb = {
   patients: [],
   checkins: [],
@@ -35,6 +33,12 @@ function getDb() {
   };
 }
 
+function getMissedMeds(patient, latest) {
+  const meds = Array.isArray(patient.criticalMeds) ? patient.criticalMeds : [];
+  const responses = latest.medResponses || {};
+  return meds.filter(med => responses[med] === "No");
+}
+
 function computeStatus(patient, checkins) {
   const latest = checkins
     .filter(c => c.patientId === patient.id)
@@ -49,7 +53,7 @@ function computeStatus(patient, checkins) {
     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
   let weightChange24h = 0;
-  let weightChange7d = 0;
+  let weightChangeBaseline = 0;
 
   if (patientHistory.length >= 2) {
     const prev = patientHistory[patientHistory.length - 2];
@@ -57,27 +61,26 @@ function computeStatus(patient, checkins) {
   }
 
   if (patient.baselineWeight) {
-    weightChange7d = Number((latest.weight - patient.baselineWeight).toFixed(1));
+    weightChangeBaseline = Number((latest.weight - patient.baselineWeight).toFixed(1));
   }
 
-  const missedCritical =
-    latest.medsTaken === "No" &&
-    Array.isArray(patient.criticalMeds) &&
-    patient.criticalMeds.length > 0;
+  const missedMeds = getMissedMeds(patient, latest);
+  const missedAnyMedication = missedMeds.length > 0;
+  const missedCriticalMedication = missedMeds.length > 0;
 
   if (
     latest.chestPain === "Yes" ||
     latest.shortnessOfBreath === "Severe" ||
     weightChange24h >= 3 ||
-    weightChange7d >= 5 ||
-    missedCritical
+    weightChangeBaseline >= 5 ||
+    missedCriticalMedication
   ) {
     const reasons = [];
     if (latest.chestPain === "Yes") reasons.push("Chest pain");
     if (latest.shortnessOfBreath === "Severe") reasons.push("Severe shortness of breath");
     if (weightChange24h >= 3) reasons.push(`Weight +${weightChange24h} lb / 24h`);
-    if (weightChange7d >= 5) reasons.push(`Weight +${weightChange7d} lb / baseline`);
-    if (missedCritical) reasons.push("Missed critical medication");
+    if (weightChangeBaseline >= 5) reasons.push(`Weight +${weightChangeBaseline} lb / baseline`);
+    if (missedCriticalMedication) reasons.push(`Missed medication: ${missedMeds.join(", ")}`);
     return { status: "Red", reason: reasons.join(", ") };
   }
 
@@ -85,7 +88,7 @@ function computeStatus(patient, checkins) {
     ["Mild", "Moderate"].includes(latest.shortnessOfBreath) ||
     ["Mild", "Moderate"].includes(latest.swelling) ||
     latest.dizziness === "Yes" ||
-    latest.medsTaken === "No"
+    missedAnyMedication
   ) {
     const reasons = [];
     if (["Mild", "Moderate"].includes(latest.shortnessOfBreath)) {
@@ -95,7 +98,7 @@ function computeStatus(patient, checkins) {
       reasons.push(`${latest.swelling} swelling`);
     }
     if (latest.dizziness === "Yes") reasons.push("Dizziness");
-    if (latest.medsTaken === "No") reasons.push("Missed medication");
+    if (missedAnyMedication) reasons.push(`Missed medication: ${missedMeds.join(", ")}`);
     return { status: "Yellow", reason: reasons.join(", ") };
   }
 
@@ -126,9 +129,14 @@ app.get("/api/patients", (req, res) => {
       .filter(c => c.patientId === p.id)
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0] || null;
 
+    const notes = db.notes
+      .filter(n => n.patientId === p.id)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
     return {
       ...p,
       latestCheckin,
+      notes,
       computed: computeStatus(p, db.checkins)
     };
   });
@@ -164,7 +172,6 @@ app.post("/api/patients", (req, res) => {
   };
 
   memoryDb.patients.push(patient);
-
   res.json({ ok: true, patient });
 });
 
@@ -174,14 +181,20 @@ app.get("/api/tasks", (req, res) => {
 });
 
 app.post("/api/checkins", (req, res) => {
-  const db = getDb();
   const body = req.body;
+  const allPatients = [...fileDb.patients, ...memoryDb.patients];
+  const allCheckins = [...fileDb.checkins, ...memoryDb.checkins];
+  const patient = allPatients.find(p => p.id === body.patientId);
+
+  if (!patient) {
+    return res.status(404).json({ error: "Patient not found" });
+  }
 
   const checkin = {
     id: `checkin_${Date.now()}`,
     patientId: body.patientId,
     weight: Number(body.weight),
-    medsTaken: body.medsTaken,
+    medResponses: body.medResponses || {},
     shortnessOfBreath: body.shortnessOfBreath,
     swelling: body.swelling,
     dizziness: body.dizziness,
@@ -191,10 +204,7 @@ app.post("/api/checkins", (req, res) => {
 
   memoryDb.checkins.push(checkin);
 
-  const allPatients = [...fileDb.patients, ...memoryDb.patients];
-  const allCheckins = [...fileDb.checkins, ...memoryDb.checkins];
-  const patient = allPatients.find(p => p.id === body.patientId);
-  const computed = computeStatus(patient, allCheckins);
+  const computed = computeStatus(patient, [...allCheckins, checkin]);
 
   if (computed.status !== "Green") {
     memoryDb.tasks.push({
@@ -211,20 +221,52 @@ app.post("/api/checkins", (req, res) => {
 });
 
 app.post("/api/tasks/complete", (req, res) => {
-  const task = memoryDb.tasks.find(t => t.id === req.body.id);
+  const db = getDb();
+  const task = db.tasks.find(t => t.id === req.body.id);
 
   if (task) {
     task.status = "closed";
-    return res.json({ ok: true });
   }
 
-  // If the task came from fileDb, just return ok for demo purposes
   res.json({ ok: true });
 });
 
+app.post("/api/tasks/escalate", (req, res) => {
+  const db = getDb();
+  const task = db.tasks.find(t => t.id === req.body.id);
 
+  if (!task) {
+    return res.status(404).json({ error: "Task not found" });
+  }
+
+  memoryDb.notes.push({
+    id: `note_${Date.now()}`,
+    patientId: task.patientId,
+    text: "Escalated to provider",
+    createdAt: new Date().toISOString()
+  });
+
+  res.json({ ok: true });
+});
+
+app.post("/api/notes", (req, res) => {
+  const body = req.body || {};
+
+  if (!body.patientId || !body.text) {
+    return res.status(400).json({ error: "patientId and text are required." });
+  }
+
+  const note = {
+    id: `note_${Date.now()}`,
+    patientId: body.patientId,
+    text: body.text,
+    createdAt: new Date().toISOString()
+  };
+
+  memoryDb.notes.push(note);
+  res.json({ ok: true, note });
+});
 
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
 });
-  
