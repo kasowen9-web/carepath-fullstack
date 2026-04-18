@@ -226,6 +226,32 @@
       margin-top: 14px;
     }
 
+    .alert-banner {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .alert-red {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .alert-yellow {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .alert-green {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
     @media (max-width: 900px) {
       .action-grid {
         grid-template-columns: 1fr;
@@ -293,6 +319,8 @@
         <div class="action-panel">
           <h3>Recommended Action</h3>
           <div id="selectedPatientInfo" class="muted-text">Select a patient to view details.</div>
+
+          <div id="autoEscalationBanner" class="alert-banner alert-green" style="display:none;"></div>
 
           <div id="recommendationBox" class="recommendation-box" style="display:none;">
             <strong id="recommendationTitle">Recommended Action</strong>
@@ -480,6 +508,29 @@
       };
     }
 
+    function getAutoEscalationMessage(patient) {
+      if (!patient) return null;
+
+      if (patient.status === "red" && patient.trend === "↓ Declining") {
+        return {
+          className: "alert-banner alert-red",
+          text: "Auto-escalation triggered: red status with declining trend. Immediate nurse outreach and provider review recommended."
+        };
+      }
+
+      if (patient.status === "yellow" && patient.trend === "↓ Declining") {
+        return {
+          className: "alert-banner alert-yellow",
+          text: "Auto-escalation triggered: yellow status with declining trend. Same-day nurse review recommended."
+        };
+      }
+
+      return {
+        className: "alert-banner alert-green",
+        text: "No automatic escalation triggered. Continue routine monitoring."
+      };
+    }
+
     function sortedPatients() {
       return [...patients].sort((a, b) => {
         const byStatus = statusOrder(a.status) - statusOrder(b.status);
@@ -641,10 +692,12 @@
       const title = document.getElementById("recommendationTitle");
       const text = document.getElementById("recommendationText");
       const steps = document.getElementById("recommendationSteps");
+      const banner = document.getElementById("autoEscalationBanner");
 
       if (!patient) {
         info.textContent = "Select a patient to view details.";
         box.style.display = "none";
+        banner.style.display = "none";
         renderHistory(null);
         return;
       }
@@ -664,6 +717,11 @@
         li.textContent = step;
         steps.appendChild(li);
       });
+
+      const autoEscalation = getAutoEscalationMessage(patient);
+      banner.className = autoEscalation.className;
+      banner.textContent = autoEscalation.text;
+      banner.style.display = "block";
 
       box.style.display = "block";
       renderHistory(patient);
