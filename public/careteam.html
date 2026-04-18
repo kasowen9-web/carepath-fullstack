@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarePath Care Team View</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .team-page {
+      width: 100%;
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 16px 40px;
+    }
+
+    .team-hero,
+    .team-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+
+    .team-hero h1,
+    .team-card h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .muted-text {
+      color: #6b7280;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .summary-item {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .summary-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .patient-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+
+    .patient-table th,
+    .patient-table td {
+      text-align: left;
+      padding: 14px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: top;
+    }
+
+    .patient-table th {
+      color: #6b7280;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+
+    .status-green {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-yellow {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-red {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .secondary-btn {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .priority-box {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+      background: #f9fafb;
+    }
+
+    .empty-note {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <div class="team-page">
+    <div class="team-hero">
+      <h1>Care Team View</h1>
+      <p class="muted-text">
+        Prioritize patients based on today’s execution signals and latest responses.
+      </p>
+
+      <div class="summary-grid">
+        <div class="summary-item">
+          <strong>Total Patients</strong>
+          <span id="totalPatients">1</span>
+        </div>
+        <div class="summary-item">
+          <strong>Green</strong>
+          <span id="greenCount">0</span>
+        </div>
+        <div class="summary-item">
+          <strong>Yellow</strong>
+          <span id="yellowCount">0</span>
+        </div>
+        <div class="summary-item">
+          <strong>Red</strong>
+          <span id="redCount">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="team-card">
+      <h2>Priority Queue</h2>
+      <p class="muted-text">
+        Patients needing the fastest attention should rise to the top.
+      </p>
+
+      <div id="priorityQueue"></div>
+    </div>
+
+    <div class="team-card">
+      <h2>Patient List</h2>
+      <table class="patient-table">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Program</th>
+            <th>Status</th>
+            <th>Latest Weight</th>
+            <th>Medications</th>
+            <th>Support</th>
+            <th>Last Updated</th>
+          </tr>
+        </thead>
+        <tbody id="patientTableBody"></tbody>
+      </table>
+
+      <div id="noDataMessage" class="empty-note" style="display:none;">
+        No submitted check-in yet. Complete onboarding and daily check-in to populate this view.
+      </div>
+
+      <div class="button-row">
+        <button type="button" onclick="goToPatientHome()">Open Patient Home</button>
+        <button type="button" class="secondary-btn" onclick="goToOnboarding()">Back to Onboarding</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const patientName = localStorage.getItem("cp_name") || "Patient";
+    const patientCondition = localStorage.getItem("cp_condition") || "Not provided";
+    const patientSupport = localStorage.getItem("cp_support") || "Not answered";
+    const lastCheckinRaw = localStorage.getItem("cp_last_checkin");
+
+    let patients = [];
+
+    if (lastCheckinRaw) {
+      try {
+        const checkin = JSON.parse(lastCheckinRaw);
+
+        let status = "green";
+
+        if (
+          checkin.shortnessOfBreath === "Severe" ||
+          checkin.swellingToday === "Severe"
+        ) {
+          status = "red";
+        } else if (
+          checkin.medsToday === "No" ||
+          checkin.shortnessOfBreath === "Moderate" ||
+          checkin.swellingToday === "Moderate"
+        ) {
+          status = "yellow";
+        }
+
+        patients.push({
+          name: checkin.name || patientName,
+          condition: checkin.condition || patientCondition,
+          status,
+          weight: checkin.weightToday || "—",
+          meds: checkin.medsToday || "—",
+          support: patientSupport,
+          submittedAt: checkin.submittedAt || "—"
+        });
+      } catch (e) {
+        console.error("Could not parse latest check-in", e);
+      }
+    }
+
+    function formatDateTime(value) {
+      if (!value || value === "—") return "—";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleString();
+    }
+
+    function statusClass(status) {
+      if (status === "red") return "status-pill status-red";
+      if (status === "yellow") return "status-pill status-yellow";
+      return "status-pill status-green";
+    }
+
+    function renderSummary() {
+      const green = patients.filter(p => p.status === "green").length;
+      const yellow = patients.filter(p => p.status === "yellow").length;
+      const red = patients.filter(p => p.status === "red").length;
+
+      document.getElementById("totalPatients").textContent = patients.length || 1;
+      document.getElementById("greenCount").textContent = green;
+      document.getElementById("yellowCount").textContent = yellow;
+      document.getElementById("redCount").textContent = red;
+    }
+
+    function renderPriorityQueue() {
+      const queueEl = document.getElementById("priorityQueue");
+      queueEl.innerHTML = "";
+
+      if (patients.length === 0) {
+        queueEl.innerHTML = `
+          <div class="empty-note">
+            No active patient signals yet. Once a patient completes a daily check-in, they will appear here.
+          </div>
+        `;
+        return;
+      }
+
+      const sorted = [...patients].sort((a, b) => {
+        const order = { red: 0, yellow: 1, green: 2 };
+        return order[a.status] - order[b.status];
+      });
+
+      sorted.forEach((patient, index) => {
+        const div = document.createElement("div");
+        div.className = "priority-box";
+        div.innerHTML = `
+          <strong>${index + 1}. ${patient.name}</strong><br>
+          <span class="${statusClass(patient.status)}">${patient.status}</span>
+          <div style="margin-top: 8px;" class="muted-text">
+            ${patient.condition} • Weight: ${patient.weight} • Meds: ${patient.meds}
+          </div>
+        `;
+        queueEl.appendChild(div);
+      });
+    }
+
+    function renderPatientTable() {
+      const tbody = document.getElementById("patientTableBody");
+      const noData = document.getElementById("noDataMessage");
+      tbody.innerHTML = "";
+
+      if (patients.length === 0) {
+        noData.style.display = "block";
+        return;
+      }
+
+      noData.style.display = "none";
+
+      patients.forEach((patient) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${patient.name}</td>
+          <td>${patient.condition}</td>
+          <td><span class="${statusClass(patient.status)}">${patient.status}</span></td>
+          <td>${patient.weight}</td>
+          <td>${patient.meds}</td>
+          <td>${patient.support}</td>
+          <td>${formatDateTime(patient.submittedAt)}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function goToPatientHome() {
+      window.location.href = "patient.html";
+    }
+
+    function goToOnboarding() {
+      window.location.href = "index.html";
+    }
+
+    renderSummary();
+    renderPriorityQueue();
+    renderPatientTable();
+  </script>
+</body>
+</html>
