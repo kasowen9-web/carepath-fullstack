@@ -64,6 +64,13 @@
       line-height: 1.4;
     }
 
+    .score-text {
+      margin-top: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+    }
+
     .task-list {
       display: grid;
       gap: 12px;
@@ -139,6 +146,7 @@
 
       <div id="patientStatus" class="status-pill status-green">green</div>
       <div id="patientEscalation" class="escalation-text">On track</div>
+      <div id="ersScore" class="score-text">Execution Score: --</div>
     </div>
 
     <div class="patient-card">
@@ -241,26 +249,15 @@
       try {
         const parsed = JSON.parse(lastCheckinRaw);
         const summary = [];
-        let status = "green";
-
-        if (
-          parsed.shortnessOfBreath === "Severe" ||
-          parsed.swellingToday === "Severe"
-        ) {
-          status = "red";
-        } else if (
-          parsed.medsToday === "No" ||
-          parsed.shortnessOfBreath === "Moderate" ||
-          parsed.swellingToday === "Moderate"
-        ) {
-          status = "yellow";
-        }
+        const status = parsed.status || "green";
+        const score = parsed.score ?? "--";
 
         const statusEl = document.getElementById("patientStatus");
         statusEl.textContent = status;
         statusEl.className = getStatusClass(status);
 
         document.getElementById("patientEscalation").textContent = getEscalationText(status);
+        document.getElementById("ersScore").textContent = "Execution Score: " + score;
 
         if (parsed.weightToday) summary.push("Weight: " + parsed.weightToday);
         if (parsed.medsToday) summary.push("Meds: " + parsed.medsToday);
