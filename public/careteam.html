@@ -139,8 +139,101 @@
       margin-top: 16px;
     }
 
-    .toolbar button {
-      margin: 0;
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 20px;
+    }
+
+    .action-panel {
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 18px;
+      background: #fafafa;
+    }
+
+    .action-panel h3 {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .patient-list-buttons {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .patient-select-btn {
+      text-align: left;
+      padding: 12px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .patient-select-btn.active {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .recommendation-box,
+    .history-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+    }
+
+    .recommendation-box strong,
+    .history-box strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .action-steps {
+      margin-top: 12px;
+      padding-left: 18px;
+    }
+
+    .action-steps li {
+      margin-bottom: 8px;
+    }
+
+    .action-buttons {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .history-list {
+      margin: 12px 0 0;
+      padding-left: 18px;
+    }
+
+    .history-list li {
+      margin-bottom: 8px;
+    }
+
+    .small-label {
+      font-size: 12px;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-top: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .action-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .action-buttons {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -182,8 +275,45 @@
       <p class="muted-text">
         Patients needing the fastest attention should rise to the top.
       </p>
-
       <div id="priorityQueue"></div>
+    </div>
+
+    <div class="team-card">
+      <h2>Nurse Action Panel</h2>
+      <p class="muted-text">
+        Select a patient to view the recommended next step and document action taken.
+      </p>
+
+      <div class="action-grid">
+        <div class="action-panel">
+          <h3>Patients</h3>
+          <div id="patientSelectList" class="patient-list-buttons"></div>
+        </div>
+
+        <div class="action-panel">
+          <h3>Recommended Action</h3>
+          <div id="selectedPatientInfo" class="muted-text">Select a patient to view details.</div>
+
+          <div id="recommendationBox" class="recommendation-box" style="display:none;">
+            <strong id="recommendationTitle">Recommended Action</strong>
+            <div id="recommendationText" class="muted-text"></div>
+            <ul id="recommendationSteps" class="action-steps"></ul>
+
+            <div class="small-label">Document action taken</div>
+            <div class="action-buttons">
+              <button type="button" onclick="logAction('Called patient')">Called patient</button>
+              <button type="button" onclick="logAction('Sent message')">Sent message</button>
+              <button type="button" onclick="logAction('Escalated to provider')">Escalated to provider</button>
+              <button type="button" class="secondary-btn" onclick="logAction('Monitoring only')">Monitoring only</button>
+            </div>
+          </div>
+
+          <div id="historyBox" class="history-box" style="display:none;">
+            <strong>Outreach History</strong>
+            <ul id="historyList" class="history-list"></ul>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="team-card">
@@ -221,8 +351,19 @@
     const patientSupport = localStorage.getItem("cp_support") || "Yes";
     const lastCheckinRaw = localStorage.getItem("cp_last_checkin");
     const demoPatientsRaw = localStorage.getItem("cp_demo_patients");
+    const actionLogRaw = localStorage.getItem("cp_action_log");
 
     let patients = [];
+    let selectedPatientIndex = null;
+    let actionLog = {};
+
+    if (actionLogRaw) {
+      try {
+        actionLog = JSON.parse(actionLogRaw);
+      } catch (e) {
+        console.error("Could not parse action log", e);
+      }
+    }
 
     if (demoPatientsRaw) {
       try {
@@ -260,6 +401,10 @@
       }
     }
 
+    function patientKey(patient) {
+      return `${patient.name}__${patient.condition}`;
+    }
+
     function formatDateTime(value) {
       if (!value || value === "—") return "—";
       const date = new Date(value);
@@ -282,6 +427,50 @@
     function statusOrder(status) {
       const order = { red: 0, yellow: 1, green: 2 };
       return order[status] ?? 3;
+    }
+
+    function getRecommendation(patient) {
+      if (patient.status === "red") {
+        return {
+          title: "Immediate Outreach Recommended",
+          text: "This patient should be contacted now based on today’s signals.",
+          steps: [
+            "Call patient immediately to assess status and verify symptoms.",
+            "Review latest medications, weight, and symptom responses.",
+            "Escalate to provider if symptoms are worsening or unresolved."
+          ]
+        };
+      }
+
+      if (patient.status === "yellow") {
+        return {
+          title: "Same-Day Review Recommended",
+          text: "This patient should be reviewed today to prevent further deviation.",
+          steps: [
+            "Review the latest check-in responses and care plan barriers.",
+            "Send same-day outreach or supportive guidance.",
+            "Reassess tomorrow and escalate if status worsens."
+          ]
+        };
+      }
+
+      return {
+        title: "Continue Monitoring",
+        text: "This patient appears on track today.",
+        steps: [
+          "Continue routine monitoring.",
+          "Reinforce guided care steps.",
+          "No escalation needed unless new signals emerge."
+        ]
+      };
+    }
+
+    function sortedPatients() {
+      return [...patients].sort((a, b) => {
+        const byStatus = statusOrder(a.status) - statusOrder(b.status);
+        if (byStatus !== 0) return byStatus;
+        return (a.score ?? 999) - (b.score ?? 999);
+      });
     }
 
     function renderSummary() {
@@ -308,13 +497,10 @@
         return;
       }
 
-      const sorted = [...patients].sort((a, b) => {
-        const byStatus = statusOrder(a.status) - statusOrder(b.status);
-        if (byStatus !== 0) return byStatus;
-        return (a.score ?? 999) - (b.score ?? 999);
-      });
+      const sorted = sortedPatients();
 
       sorted.forEach((patient, index) => {
+        const lastAction = getLatestAction(patient);
         const div = document.createElement("div");
         div.className = "priority-box";
         div.innerHTML = `
@@ -324,6 +510,7 @@
           <div style="margin-top: 8px;" class="muted-text">
             ${patient.condition} • ERS: ${patient.score} • Weight: ${patient.weight} • Meds: ${patient.meds}
           </div>
+          ${lastAction ? `<div class="escalation-text">Latest action: ${lastAction.action}</div>` : ``}
         `;
         queueEl.appendChild(div);
       });
@@ -341,11 +528,7 @@
 
       noData.style.display = "none";
 
-      const sorted = [...patients].sort((a, b) => {
-        const byStatus = statusOrder(a.status) - statusOrder(b.status);
-        if (byStatus !== 0) return byStatus;
-        return (a.score ?? 999) - (b.score ?? 999);
-      });
+      const sorted = sortedPatients();
 
       sorted.forEach((patient) => {
         const row = document.createElement("tr");
@@ -366,11 +549,136 @@
       });
     }
 
+    function renderPatientSelector() {
+      const list = document.getElementById("patientSelectList");
+      list.innerHTML = "";
+
+      if (patients.length === 0) {
+        list.innerHTML = `<div class="empty-note">No patients available.</div>`;
+        renderRecommendation(null);
+        return;
+      }
+
+      const sorted = sortedPatients();
+
+      sorted.forEach((patient, index) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "patient-select-btn" + (selectedPatientIndex === index ? " active" : "");
+        btn.innerHTML = `
+          ${patient.name}<br>
+          <span class="muted-text">${patient.condition} • ${patient.status.toUpperCase()} • ERS ${patient.score}</span>
+        `;
+        btn.onclick = () => {
+          selectedPatientIndex = index;
+          renderPatientSelector();
+          renderRecommendation(sorted[index]);
+        };
+        list.appendChild(btn);
+      });
+
+      if (selectedPatientIndex === null && sorted.length > 0) {
+        selectedPatientIndex = 0;
+        renderPatientSelector();
+        renderRecommendation(sorted[0]);
+      }
+    }
+
+    function getLatestAction(patient) {
+      const key = patientKey(patient);
+      const history = actionLog[key] || [];
+      return history.length ? history[0] : null;
+    }
+
+    function renderHistory(patient) {
+      const historyBox = document.getElementById("historyBox");
+      const historyList = document.getElementById("historyList");
+
+      if (!patient) {
+        historyBox.style.display = "none";
+        historyList.innerHTML = "";
+        return;
+      }
+
+      const key = patientKey(patient);
+      const history = actionLog[key] || [];
+
+      if (!history.length) {
+        historyBox.style.display = "block";
+        historyList.innerHTML = `<li>No action documented yet.</li>`;
+        return;
+      }
+
+      historyBox.style.display = "block";
+      historyList.innerHTML = "";
+
+      history.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.action} — ${formatDateTime(item.time)}`;
+        historyList.appendChild(li);
+      });
+    }
+
+    function renderRecommendation(patient) {
+      const info = document.getElementById("selectedPatientInfo");
+      const box = document.getElementById("recommendationBox");
+      const title = document.getElementById("recommendationTitle");
+      const text = document.getElementById("recommendationText");
+      const steps = document.getElementById("recommendationSteps");
+
+      if (!patient) {
+        info.textContent = "Select a patient to view details.";
+        box.style.display = "none";
+        renderHistory(null);
+        return;
+      }
+
+      info.innerHTML = `
+        <strong>${patient.name}</strong><br>
+        <span class="muted-text">${patient.condition} • ${patient.status.toUpperCase()} • ERS ${patient.score}</span>
+      `;
+
+      const recommendation = getRecommendation(patient);
+      title.textContent = recommendation.title;
+      text.textContent = recommendation.text;
+      steps.innerHTML = "";
+
+      recommendation.steps.forEach(step => {
+        const li = document.createElement("li");
+        li.textContent = step;
+        steps.appendChild(li);
+      });
+
+      box.style.display = "block";
+      renderHistory(patient);
+    }
+
+    function logAction(action) {
+      const sorted = sortedPatients();
+      const patient = sorted[selectedPatientIndex];
+
+      if (!patient) return;
+
+      const key = patientKey(patient);
+      if (!actionLog[key]) actionLog[key] = [];
+
+      actionLog[key].unshift({
+        action,
+        time: new Date().toISOString()
+      });
+
+      localStorage.setItem("cp_action_log", JSON.stringify(actionLog));
+      renderPriorityQueue();
+      renderRecommendation(patient);
+    }
+
     function renderAll() {
       localStorage.setItem("cp_demo_patients", JSON.stringify(patients));
       renderSummary();
       renderPriorityQueue();
       renderPatientTable();
+      selectedPatientIndex = null;
+      renderPatientSelector();
     }
 
     function loadDemoPatients() {
@@ -433,6 +741,8 @@
     function clearDemoPatients() {
       patients = [];
       localStorage.removeItem("cp_demo_patients");
+      localStorage.removeItem("cp_action_log");
+      actionLog = {};
       renderAll();
     }
 
