@@ -123,6 +123,13 @@
       border: 1px solid #bfdbfe;
       color: #1d4ed8;
     }
+
+    .escalation-text {
+      margin-top: 6px;
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.35;
+    }
   </style>
 </head>
 <body>
@@ -244,6 +251,12 @@
       return "status-pill status-green";
     }
 
+    function getEscalationText(status) {
+      if (status === "red") return "Needs immediate attention";
+      if (status === "yellow") return "Monitor closely";
+      return "On track";
+    }
+
     function renderSummary() {
       const green = patients.filter(p => p.status === "green").length;
       const yellow = patients.filter(p => p.status === "yellow").length;
@@ -279,6 +292,7 @@
         div.innerHTML = `
           <strong>${index + 1}. ${patient.name}</strong><br>
           <span class="${statusClass(patient.status)}">${patient.status}</span>
+          <div class="escalation-text">${getEscalationText(patient.status)}</div>
           <div style="margin-top: 8px;" class="muted-text">
             ${patient.condition} • Weight: ${patient.weight} • Meds: ${patient.meds}
           </div>
@@ -304,7 +318,10 @@
         row.innerHTML = `
           <td>${patient.name}</td>
           <td>${patient.condition}</td>
-          <td><span class="${statusClass(patient.status)}">${patient.status}</span></td>
+          <td>
+            <span class="${statusClass(patient.status)}">${patient.status}</span>
+            <div class="escalation-text">${getEscalationText(patient.status)}</div>
+          </td>
           <td>${patient.weight}</td>
           <td>${patient.meds}</td>
           <td>${patient.support}</td>
