@@ -3,7 +3,6 @@ let step = 1;
 const formArea = document.getElementById("form-area");
 
 function renderStep() {
-
   document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
   document.getElementById("s" + step).classList.add("active");
 
@@ -13,8 +12,8 @@ function renderStep() {
 
     formArea.innerHTML = `
       <h2>Confirm You</h2>
-      <input id="name" placeholder="Full Name">
-      <input id="phone" placeholder="Phone Number">
+      <input id="name" placeholder="Full Name" value="${localStorage.getItem("cp_name") || ""}">
+      <input id="phone" placeholder="Phone Number" value="${localStorage.getItem("cp_phone") || ""}">
       <button onclick="nextStep()">Continue</button>
     `;
   }
@@ -24,8 +23,9 @@ function renderStep() {
     document.getElementById("step-subtitle").innerText = "Tell us about your care plan";
 
     formArea.innerHTML = `
-      <input id="condition" placeholder="Condition / Program">
-      <input id="date" type="date">
+      <input id="condition" placeholder="Condition / Program" value="${localStorage.getItem("cp_condition") || ""}">
+      <input id="date" type="date" value="${localStorage.getItem("cp_date") || ""}">
+      <button onclick="prevStep()">Back</button>
       <button onclick="nextStep()">Continue</button>
     `;
   }
@@ -36,8 +36,11 @@ function renderStep() {
 
     formArea.innerHTML = `
       <p>Do you have your medications?</p>
-      <button onclick="nextStep()">Yes</button>
-      <button onclick="nextStep()">No</button>
+      <button onclick="saveAnswerAndNext('cp_meds', 'Yes')">Yes</button>
+      <button onclick="saveAnswerAndNext('cp_meds', 'No')">No</button>
+      <div style="margin-top:16px;">
+        <button onclick="prevStep()">Back</button>
+      </div>
     `;
   }
 
@@ -47,8 +50,11 @@ function renderStep() {
 
     formArea.innerHTML = `
       <p>Do you have support at home?</p>
-      <button onclick="nextStep()">Yes</button>
-      <button onclick="nextStep()">No</button>
+      <button onclick="saveAnswerAndNext('cp_support', 'Yes')">Yes</button>
+      <button onclick="saveAnswerAndNext('cp_support', 'No')">No</button>
+      <div style="margin-top:16px;">
+        <button onclick="prevStep()">Back</button>
+      </div>
     `;
   }
 
@@ -60,14 +66,50 @@ function renderStep() {
       <p>You’ll receive guided daily care steps and check-ins.</p>
       <p>Some steps are time-sensitive to keep your care on track—we’ll guide you along the way.</p>
       <p><strong>Your responses guide your care team, so they can step in when support is needed.</strong></p>
+      <button onclick="prevStep()">Back</button>
       <button onclick="finish()">Start My CarePath</button>
     `;
   }
 }
 
 function nextStep() {
-  step++;
-  renderStep();
+  if (step === 1) {
+    const name = document.getElementById("name")?.value?.trim() || "";
+    const phone = document.getElementById("phone")?.value?.trim() || "";
+
+    if (!name || !phone) {
+      alert("Please enter your name and phone number.");
+      return;
+    }
+
+    localStorage.setItem("cp_name", name);
+    localStorage.setItem("cp_phone", phone);
+  }
+
+  if (step === 2) {
+    const condition = document.getElementById("condition")?.value?.trim() || "";
+    const date = document.getElementById("date")?.value || "";
+
+    localStorage.setItem("cp_condition", condition);
+    localStorage.setItem("cp_date", date);
+  }
+
+  if (step < 5) {
+    step++;
+    renderStep();
+  }
+}
+
+function prevStep() {
+  if (step > 1) {
+    step--;
+    renderStep();
+  }
+}
+
+function saveAnswerAndNext(key, value) {
+  localStorage.setItem(key, value);
+  nextStep();
 }
 
 function finish() {
