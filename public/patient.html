@@ -90,6 +90,37 @@
       font-weight: 600;
       margin-top: 12px;
     }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .summary-item {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .summary-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .last-checkin {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+    }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -123,16 +154,36 @@
 
       <div class="button-row">
         <button type="button" onclick="startCheckIn()">Open Today’s Check-In</button>
+        <button type="button" class="secondary-btn" onclick="openCareTeamView()">Open Care Team View</button>
         <button type="button" class="secondary-btn" onclick="goHome()">Back to Onboarding</button>
+      </div>
+
+      <div class="last-checkin hidden" id="lastCheckinCard">
+        <strong>Latest Check-In Submitted</strong>
+        <p id="lastCheckinSummary" style="margin-bottom: 0;"></p>
       </div>
     </div>
 
     <div class="patient-card">
       <h2>Your Care Context</h2>
-      <p><strong>Program:</strong> <span id="patientCondition">Not provided</span></p>
-      <p><strong>Discharge Date:</strong> <span id="patientDate">Not provided</span></p>
-      <p><strong>Support at Home:</strong> <span id="patientSupport">Not answered</span></p>
-      <p><strong>Medications Available:</strong> <span id="patientMeds">Not answered</span></p>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <strong>Program</strong>
+          <span id="patientCondition">Not provided</span>
+        </div>
+        <div class="summary-item">
+          <strong>Discharge Date</strong>
+          <span id="patientDate">Not provided</span>
+        </div>
+        <div class="summary-item">
+          <strong>Support at Home</strong>
+          <span id="patientSupport">Not answered</span>
+        </div>
+        <div class="summary-item">
+          <strong>Medications Available</strong>
+          <span id="patientMeds">Not answered</span>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -142,6 +193,7 @@
     const savedDate = localStorage.getItem("cp_date");
     const savedSupport = localStorage.getItem("cp_support");
     const savedMeds = localStorage.getItem("cp_meds");
+    const lastCheckin = localStorage.getItem("cp_last_checkin");
 
     if (savedName) {
       document.getElementById("patientName").textContent = savedName;
@@ -165,9 +217,33 @@
       document.getElementById("patientMeds").textContent = savedMeds;
     }
 
-function startCheckIn() {
-  window.location.href = "checkin.html";
-}
+    if (lastCheckin) {
+      try {
+        const parsed = JSON.parse(lastCheckin);
+        const summary = [];
+
+        if (parsed.weightToday) summary.push("Weight: " + parsed.weightToday);
+        if (parsed.medsToday) summary.push("Meds: " + parsed.medsToday);
+        if (parsed.shortnessOfBreath) summary.push("Breathing: " + parsed.shortnessOfBreath);
+        if (parsed.swellingToday) summary.push("Swelling: " + parsed.swellingToday);
+
+        document.getElementById("lastCheckinSummary").textContent =
+          summary.length > 0 ? summary.join(" • ") : "Today’s check-in has been submitted.";
+
+        document.getElementById("lastCheckinCard").classList.remove("hidden");
+      } catch (e) {
+        console.error("Unable to read last check-in", e);
+      }
+    }
+
+    function startCheckIn() {
+      window.location.href = "checkin.html";
+    }
+
+    function openCareTeamView() {
+      window.location.href = "careteam.html";
+    }
+
     function goHome() {
       window.location.href = "index.html";
     }
