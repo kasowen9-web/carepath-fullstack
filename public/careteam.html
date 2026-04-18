@@ -172,6 +172,23 @@ button {
 
 <script>
 
+// 🔥 AUTO DEMO DATA (only loads once)
+if(!localStorage.getItem("cp_demo_patients")){
+  const demoPatients = [
+    {name:"Maria Gonzalez", status:"red", score:42, trend:"↓ Declining", tier:"Tier 3"},
+    {name:"James Carter", status:"yellow", score:68, trend:"↓ Declining", tier:"Tier 3"},
+    {name:"Linda Chen", status:"green", score:92, trend:"↑ Improving", tier:"Tier 1"},
+    {name:"Robert Davis", status:"yellow", score:74, trend:"→ Stable", tier:"Tier 2"}
+  ];
+
+  localStorage.setItem("cp_demo_patients", JSON.stringify(demoPatients));
+
+  localStorage.setItem("cp_alert_feed", JSON.stringify([
+    {level:"red", text:"Maria Gonzalez deteriorating - ERS 42", time:"Now"},
+    {level:"yellow", text:"James Carter needs review - ERS 68", time:"Now"}
+  ]));
+}
+
 let patients = JSON.parse(localStorage.getItem("cp_demo_patients") || "[]");
 let alertFeed = JSON.parse(localStorage.getItem("cp_alert_feed") || "[]");
 
@@ -186,25 +203,10 @@ function openPatient(p){
   window.location.href = "patient-detail.html";
 }
 
-// ALERT ENGINE
-function pushAlerts(){
-  patients.forEach(p=>{
-    if(p.status==="red" && p.trend==="↓ Declining"){
-      alertFeed.unshift({
-        level:"red",
-        text:`${p.name} deteriorating - ERS ${p.score}`,
-        time:new Date().toLocaleTimeString()
-      });
-    }
-  });
-
-  alertFeed = alertFeed.slice(0,6);
-  localStorage.setItem("cp_alert_feed", JSON.stringify(alertFeed));
-}
-
-// RENDER ALERT
+// ALERTS
 function renderAlerts(){
   let top = alertFeed[0];
+
   if(!top){
     document.getElementById("topAlert").innerHTML =
     `<div class="alert-banner alert-green">System Stable</div>`;
@@ -255,19 +257,7 @@ document.getElementById("escalated").innerText =
 patients.filter(p=>p.tier==="Tier 3").length;
 }
 
-// SIMULATE
-function simulateAlert(){
-  alertFeed.unshift({
-    level:"red",
-    text:"Simulated patient deterioration",
-    time:new Date().toLocaleTimeString()
-  });
-  localStorage.setItem("cp_alert_feed", JSON.stringify(alertFeed));
-  renderAlerts();
-}
-
 // INIT
-pushAlerts();
 renderAlerts();
 renderTable();
 renderMetrics();
