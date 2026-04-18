@@ -1,1 +1,153 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patient Detail</title>
+
+<style>
+body { font-family: Arial; background:#f3f4f6; margin:0; }
+.container { max-width:700px; margin:auto; padding:20px; }
+
+.card {
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+}
+
+.status {
+  padding:6px 12px;
+  border-radius:20px;
+  font-weight:700;
+  display:inline-block;
+}
+
+.green { background:#dcfce7; }
+.yellow { background:#fef3c7; }
+.red { background:#fee2e2; }
+
+.tier {
+  padding:6px 12px;
+  border-radius:20px;
+  font-weight:700;
+  display:inline-block;
+  margin-left:10px;
+}
+
+.t1 { background:#dcfce7; }
+.t2 { background:#fef3c7; }
+.t3 { background:#fee2e2; }
+
+.section {
+  margin-top:15px;
+}
+
+button {
+  margin-top:15px;
+  padding:10px;
+  width:100%;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Patient Detail</h1>
+
+<div class="card">
+
+<h2 id="name"></h2>
+
+<span id="status"></span>
+<span id="tier"></span>
+
+<div class="section">
+<strong>Execution Score:</strong>
+<p id="score"></p>
+</div>
+
+<div class="section">
+<strong>Trend:</strong>
+<p id="trend"></p>
+</div>
+
+<div class="section">
+<strong>Recommended Action:</strong>
+<p id="action"></p>
+</div>
+
+</div>
+
+<div class="card">
+<h3>Latest Check-In</h3>
+
+<p><strong>Weight:</strong> <span id="weight"></span></p>
+<p><strong>Medications:</strong> <span id="meds"></span></p>
+<p><strong>Breathing:</strong> <span id="breath"></span></p>
+<p><strong>Swelling:</strong> <span id="swelling"></span></p>
+
+</div>
+
+<button onclick="goBack()">Back to Dashboard</button>
+
+</div>
+
+<script>
+
+// GET SELECTED PATIENT
+let patient = JSON.parse(localStorage.getItem("selected_patient") || "{}");
+let checkin = JSON.parse(localStorage.getItem("cp_last_checkin") || "{}");
+
+// SET NAME
+document.getElementById("name").innerText = patient.name || "Patient";
+
+// STATUS
+let statusEl = document.getElementById("status");
+statusEl.innerText = patient.status;
+
+if(patient.status === "green") statusEl.className = "status green";
+if(patient.status === "yellow") statusEl.className = "status yellow";
+if(patient.status === "red") statusEl.className = "status red";
+
+// TIER
+let tierEl = document.getElementById("tier");
+tierEl.innerText = patient.tier;
+
+if(patient.tier === "Tier 1") tierEl.className = "tier t1";
+if(patient.tier === "Tier 2") tierEl.className = "tier t2";
+if(patient.tier === "Tier 3") tierEl.className = "tier t3";
+
+// DATA
+document.getElementById("score").innerText = patient.score;
+document.getElementById("trend").innerText = patient.trend;
+
+// ACTION LOGIC
+let action = "Continue monitoring";
+
+if(patient.tier === "Tier 3"){
+  action = "Call patient immediately and escalate to provider";
+}
+else if(patient.tier === "Tier 2"){
+  action = "Review today and follow up if needed";
+}
+
+document.getElementById("action").innerText = action;
+
+// CHECK-IN DATA
+document.getElementById("weight").innerText = checkin.weightToday || "-";
+document.getElementById("meds").innerText = checkin.medsToday || "-";
+document.getElementById("breath").innerText = checkin.shortnessOfBreath || "-";
+document.getElementById("swelling").innerText = checkin.swellingToday || "-";
+
+function goBack(){
+  window.location.href = "careteam.html";
+}
+
+</script>
+
+</body>
+</html>
