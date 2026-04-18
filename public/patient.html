@@ -1,218 +1,177 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CarePath Patient Check-In</title>
-  <link rel="stylesheet" href="/styles.css" />
-</head>
-<body class="patient-page">
-  <main class="patient-shell">
-    <section class="patient-card">
-      <div class="patient-brand">
-        <div class="patient-logo">C</div>
-        <div>
-          <h1>CarePath</h1>
-          <p>Your daily care check-in</p>
-        </div>
-      </div>
-
-      <div id="patient-loading" class="patient-loading">Loading your check-in…</div>
-
-      <div id="patient-content" style="display: none;">
-        <header class="patient-header">
-          <h2 id="patient-name">Patient Name</h2>
-          <p id="patient-diagnosis">Diagnosis</p>
-        </header>
-
-        <div class="patient-panel">
-          <h3>Today’s Check-In</h3>
-          <p class="patient-subtext">
-            Please answer a few quick questions so your care team can stay updated.
-          </p>
-
-          <form id="patient-checkin-form" class="patient-form">
-            <label>
-              Weight today
-              <input type="number" id="weight" step="0.1" required />
-            </label>
-
-            <div id="medication-questions" class="patient-med-list"></div>
-
-            <label>
-              Shortness of breath
-              <select id="shortnessOfBreath">
-                <option>None</option>
-                <option>Mild</option>
-                <option>Moderate</option>
-                <option>Severe</option>
-              </select>
-            </label>
-
-            <label>
-              Swelling
-              <select id="swelling">
-                <option>None</option>
-                <option>Mild</option>
-                <option>Moderate</option>
-                <option>Severe</option>
-              </select>
-            </label>
-
-            <label>
-              Dizziness
-              <select id="dizziness">
-                <option>No</option>
-                <option>Yes</option>
-              </select>
-            </label>
-
-            <label>
-              Chest pain
-              <select id="chestPain">
-                <option>No</option>
-                <option>Yes</option>
-              </select>
-            </label>
-
-            <button type="submit" class="patient-submit">Submit Check-In</button>
-          </form>
-        </div>
-
-        <div id="patient-success" class="patient-success" style="display: none;">
-          <h3>Thank you</h3>
-          <p>Your check-in was submitted successfully.</p>
-          <p id="patient-success-detail"></p>
-        </div>
-      </div>
-
-      <div id="patient-error" class="patient-error" style="display: none;"></div>
-    </section>
-  </main>
-
-  <script>
-let currentPatient = null;
-
-function byId(id) {
-  return document.getElementById(id);
-}
-
-async function getJSON(url) {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Request failed: ${res.status}`);
-  }
-  return res.json();
-}
-
-async function postJSON(url, body) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-
-  if (!res.ok) {
-    throw new Error(`Request failed: ${res.status}`);
-  }
-
-  return res.json();
-}
-
-function renderMedicationQuestions(patient) {
-  const container = byId("medication-questions");
-  const meds = Array.isArray(patient.criticalMeds) ? patient.criticalMeds : [];
-
-  if (!meds.length) {
-    container.innerHTML = `
-      <div class="patient-med-card">
-        <p>No medications listed for today.</p>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = `
-    <div class="patient-med-card">
-      <h4>Your medications</h4>
-      ${meds.map((med) => `
-        <label>
-          Did you take ${med} today?
-          <select class="med-response" data-med-name="${med}">
-            <option>Yes</option>
-            <option>No</option>
-          </select>
-        </label>
-      `).join("")}
-    </div>
-  `;
-}
-
-function getPatientIdFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("patientId");
-}
-
-async function loadPatient() {
-  try {
-    const patients = await getJSON("/api/patients");
-    if (!Array.isArray(patients) || !patients.length) {
-      throw new Error("No patients found.");
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarePath Patient View</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .patient-page {
+      width: 100%;
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 0 16px 40px;
     }
 
-    const requestedPatientId = getPatientIdFromUrl();
-    currentPatient =
-      patients.find((p) => p.id === requestedPatientId) ||
-      patients[0];
+    .patient-hero {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
 
-    byId("patient-name").textContent = currentPatient.name;
-    byId("patient-diagnosis").textContent = currentPatient.diagnosis || "Care plan check-in";
+    .patient-hero h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
 
-    renderMedicationQuestions(currentPatient);
+    .patient-hero p {
+      margin: 0;
+      color: #6b7280;
+    }
 
-    byId("patient-loading").style.display = "none";
-    byId("patient-content").style.display = "block";
-  } catch (error) {
-    byId("patient-loading").style.display = "none";
-    byId("patient-error").style.display = "block";
-    byId("patient-error").textContent = "We could not load your check-in right now.";
-    console.error(error);
-  }
-}
+    .patient-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
 
-byId("patient-checkin-form").addEventListener("submit", async (e) => {
-  e.preventDefault();
+    .patient-card h2 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 20px;
+    }
 
-  if (!currentPatient) return;
+    .task-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
 
-  const medResponses = {};
-  document.querySelectorAll(".med-response").forEach((select) => {
-    medResponses[select.dataset.medName] = select.value;
-  });
+    .task-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 14px 16px;
+      background: #f9fafb;
+    }
 
-  try {
-    const response = await postJSON("/api/checkins", {
-      patientId: currentPatient.id,
-      weight: byId("weight").value,
-      medResponses,
-      shortnessOfBreath: byId("shortnessOfBreath").value,
-      swelling: byId("swelling").value,
-      dizziness: byId("dizziness").value,
-      chestPain: byId("chestPain").value
-    });
+    .task-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
 
-    byId("patient-checkin-form").style.display = "none";
-    byId("patient-success").style.display = "block";
-    byId("patient-success-detail").textContent =
-      `Your care team has been updated. Current status: ${response.status.status}.`;
-  } catch (error) {
-    byId("patient-error").style.display = "block";
-    byId("patient-error").textContent = "Your check-in could not be submitted. Please try again.";
-    console.error(error);
-  }
-});
+    .task-item span {
+      color: #6b7280;
+      font-size: 14px;
+    }
 
-loadPatient();
-</script>
+    .button-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .secondary-btn {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .status-pill {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1d4ed8;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="patient-page">
+    <div class="patient-hero">
+      <h1>Welcome, <span id="patientName">Patient</span></h1>
+      <p id="patientSubtitle">Your CarePath is active and ready.</p>
+      <div class="status-pill">CarePath Active</div>
+    </div>
+
+    <div class="patient-card">
+      <h2>Today’s Guided Steps</h2>
+      <p>Complete these steps to stay on track with your care plan.</p>
+
+      <div class="task-list">
+        <div class="task-item">
+          <strong>Medication Check</strong>
+          <span>Confirm you have taken your scheduled medications today.</span>
+        </div>
+
+        <div class="task-item">
+          <strong>Care Plan Review</strong>
+          <span>Review your next care step and stay aligned to your plan.</span>
+        </div>
+
+        <div class="task-item">
+          <strong>Daily Check-In</strong>
+          <span>Complete today’s guided check-in when prompted.</span>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button type="button" onclick="startCheckIn()">Open Today’s Check-In</button>
+        <button type="button" class="secondary-btn" onclick="goHome()">Back to Onboarding</button>
+      </div>
+    </div>
+
+    <div class="patient-card">
+      <h2>Your Care Context</h2>
+      <p><strong>Program:</strong> <span id="patientCondition">Not provided</span></p>
+      <p><strong>Discharge Date:</strong> <span id="patientDate">Not provided</span></p>
+      <p><strong>Support at Home:</strong> <span id="patientSupport">Not answered</span></p>
+      <p><strong>Medications Available:</strong> <span id="patientMeds">Not answered</span></p>
+    </div>
+  </div>
+
+  <script>
+    const savedName = localStorage.getItem("cp_name");
+    const savedCondition = localStorage.getItem("cp_condition");
+    const savedDate = localStorage.getItem("cp_date");
+    const savedSupport = localStorage.getItem("cp_support");
+    const savedMeds = localStorage.getItem("cp_meds");
+
+    if (savedName) {
+      document.getElementById("patientName").textContent = savedName;
+      document.getElementById("patientSubtitle").textContent =
+        "Your CarePath is active and ready for today.";
+    }
+
+    if (savedCondition) {
+      document.getElementById("patientCondition").textContent = savedCondition;
+    }
+
+    if (savedDate) {
+      document.getElementById("patientDate").textContent = savedDate;
+    }
+
+    if (savedSupport) {
+      document.getElementById("patientSupport").textContent = savedSupport;
+    }
+
+    if (savedMeds) {
+      document.getElementById("patientMeds").textContent = savedMeds;
+    }
+
+    function startCheckIn() {
+      alert("Today’s check-in will go here next.");
+    }
+
+    function goHome() {
+      window.location.href = "index.html";
+    }
+  </script>
 </body>
 </html>
