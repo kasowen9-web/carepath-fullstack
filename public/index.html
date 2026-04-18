@@ -1,156 +1,34 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CarePath Prototype</title>
-  <link rel="stylesheet" href="/styles.css" />
-</head>
-<body>
-  <div class="shell">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="logo">C</div>
-        <div>
-          <h1>CarePath</h1>
-          <p>Care execution platform</p>
-        </div>
-      </div>
-      <nav>
-        <button class="nav-btn active" data-view="dashboard">Dashboard</button>
-        <button class="nav-btn" data-view="patient-checkin">Patient Check-In</button>
-        <button class="nav-btn" data-view="enroll-patient">Enroll Patient</button>
-      </nav>
-    </aside>
+<div class="onboarding-container">
 
-    <main class="main">
-      <header class="topbar">
-        <h2 id="view-title">Nurse Dashboard</h2>
-        <p id="view-subtitle">Execution visibility after discharge</p>
-      </header>
-
-      <section id="dashboard-view" class="view active">
-        <div id="summary-cards"></div>
-
-        <div class="panel">
-          <h3>Open Escalation Tasks</h3>
-          <div id="task-list"></div>
-        </div>
-
-        <div class="panel">
-          <h3>Patient Queue</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Patient</th>
-                <th>Status</th>
-                <th>Latest signal</th>
-                <th>Discharge</th>
-              </tr>
-            </thead>
-            <tbody id="patient-rows"></tbody>
-          </table>
-        </div>
-
-        <div id="patient-detail-panel" style="display:none;">
-          <div id="patient-detail-content"></div>
-        </div>
-      </section>
-
-      <section id="checkin-view" class="view">
-        <form id="checkin-form">
-          <h3>Daily Check-In</h3>
-
-          <label>Patient
-            <select id="patientId"></select>
-          </label>
-
-          <div id="medication-questions"></div>
-
-          <label>Weight
-            <input type="number" id="weight" />
-          </label>
-
-          <label>Shortness of breath
-            <select id="shortnessOfBreath">
-              <option>None</option>
-              <option>Mild</option>
-              <option>Moderate</option>
-              <option>Severe</option>
-            </select>
-          </label>
-
-          <label>Swelling
-            <select id="swelling">
-              <option>None</option>
-              <option>Mild</option>
-              <option>Moderate</option>
-              <option>Severe</option>
-            </select>
-          </label>
-
-          <label>Dizziness
-            <select id="dizziness">
-              <option>No</option>
-              <option>Yes</option>
-            </select>
-          </label>
-
-          <label>Chest Pain
-            <select id="chestPain">
-              <option>No</option>
-              <option>Yes</option>
-            </select>
-          </label>
-
-          <button type="submit">Submit</button>
-          <div id="checkin-result"></div>
-        </form>
-      </section>
-
-      <section id="enroll-view" class="view">
-        <form id="enroll-form">
-          <h3>Enroll Patient</h3>
-
-          <label>Name
-            <input id="enrollName" />
-          </label>
-
-          <label>Phone
-            <input id="enrollPhone" />
-          </label>
-
-          <label>Diagnosis
-            <input id="enrollDiagnosis" value="CHF" />
-          </label>
-
-          <label>Discharge Date
-            <input type="date" id="enrollDischargeDate" />
-          </label>
-
-          <label>Baseline Weight
-            <input id="enrollBaselineWeight" />
-          </label>
-
-          <label>Critical Meds (comma separated)
-            <input id="enrollCriticalMeds" placeholder="Lasix, Metoprolol" />
-          </label>
-
-          <label>Assigned Nurse
-            <input id="enrollAssignedNurse" />
-          </label>
-
-          <label>Provider
-            <input id="enrollProvider" />
-          </label>
-
-          <button type="submit">Save</button>
-          <div id="enroll-result"></div>
-        </form>
-      </section>
-    </main>
+  <div class="onboarding-header">
+    <div class="logo-circle">❤️</div>
+    <h1>Welcome to CarePath Continuum</h1>
+    <p>Let's set up your profile so your care team can support you best</p>
   </div>
 
-  <script src="app.js"></script>
-</body>
-</html>
+  <div class="progress-bar">
+    <div class="step active">1</div>
+    <div class="line"></div>
+    <div class="step">2</div>
+    <div class="line"></div>
+    <div class="step">3</div>
+    <div class="line"></div>
+    <div class="step">4</div>
+    <div class="line"></div>
+    <div class="step">5</div>
+  </div>
+
+  <div class="card">
+    <h2>Contact Details</h2>
+    <p>Please confirm your contact information so your care team can reach you when needed.</p>
+
+    <label>Full Name</label>
+    <input type="text" id="fullName" placeholder="Enter your full name" />
+
+    <label>Phone Number</label>
+    <input type="text" id="phone" placeholder="(555) 123-4567" />
+
+    <button onclick="nextStep()">Continue</button>
+  </div>
+
+</div>
