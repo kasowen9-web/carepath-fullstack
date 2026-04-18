@@ -8,7 +8,7 @@
   <style>
     .team-page {
       width: 100%;
-      max-width: 1100px;
+      max-width: 1180px;
       margin: 40px auto;
       padding: 0 16px 40px;
     }
@@ -130,6 +130,18 @@
       color: #6b7280;
       line-height: 1.35;
     }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .toolbar button {
+      margin: 0;
+    }
   </style>
 </head>
 <body>
@@ -143,7 +155,7 @@
       <div class="summary-grid">
         <div class="summary-item">
           <strong>Total Patients</strong>
-          <span id="totalPatients">1</span>
+          <span id="totalPatients">0</span>
         </div>
         <div class="summary-item">
           <strong>Green</strong>
@@ -157,6 +169,11 @@
           <strong>Red</strong>
           <span id="redCount">0</span>
         </div>
+      </div>
+
+      <div class="toolbar">
+        <button type="button" onclick="loadDemoPatients()">Load Demo Patients</button>
+        <button type="button" class="secondary-btn" onclick="clearDemoPatients()">Clear Demo Patients</button>
       </div>
     </div>
 
@@ -188,7 +205,7 @@
       </table>
 
       <div id="noDataMessage" class="empty-note" style="display:none;">
-        No submitted check-in yet. Complete onboarding and daily check-in to populate this view.
+        No patient signals yet. Load demo patients or complete a daily check-in to populate this view.
       </div>
 
       <div class="button-row">
@@ -200,17 +217,25 @@
 
   <script>
     const patientName = localStorage.getItem("cp_name") || "Patient";
-    const patientCondition = localStorage.getItem("cp_condition") || "Not provided";
-    const patientSupport = localStorage.getItem("cp_support") || "Not answered";
+    const patientCondition = localStorage.getItem("cp_condition") || "CHF";
+    const patientSupport = localStorage.getItem("cp_support") || "Yes";
     const lastCheckinRaw = localStorage.getItem("cp_last_checkin");
+    const demoPatientsRaw = localStorage.getItem("cp_demo_patients");
 
     let patients = [];
+
+    if (demoPatientsRaw) {
+      try {
+        patients = JSON.parse(demoPatientsRaw);
+      } catch (e) {
+        console.error("Could not parse demo patients", e);
+      }
+    }
 
     if (lastCheckinRaw) {
       try {
         const checkin = JSON.parse(lastCheckinRaw);
-
-        patients.push({
+        const livePatient = {
           name: checkin.name || patientName,
           condition: checkin.condition || patientCondition,
           status: checkin.status || "green",
@@ -218,8 +243,18 @@
           weight: checkin.weightToday || "—",
           meds: checkin.medsToday || "—",
           support: patientSupport,
-          submittedAt: checkin.submittedAt || "—"
-        });
+          submittedAt: checkin.submittedAt || new Date().toISOString()
+        };
+
+        const existingIndex = patients.findIndex(
+          p => p.name === livePatient.name && p.condition === livePatient.condition
+        );
+
+        if (existingIndex >= 0) {
+          patients[existingIndex] = livePatient;
+        } else {
+          patients.push(livePatient);
+        }
       } catch (e) {
         console.error("Could not parse latest check-in", e);
       }
@@ -244,12 +279,17 @@
       return "On track";
     }
 
+    function statusOrder(status) {
+      const order = { red: 0, yellow: 1, green: 2 };
+      return order[status] ?? 3;
+    }
+
     function renderSummary() {
       const green = patients.filter(p => p.status === "green").length;
       const yellow = patients.filter(p => p.status === "yellow").length;
       const red = patients.filter(p => p.status === "red").length;
 
-      document.getElementById("totalPatients").textContent = patients.length || 1;
+      document.getElementById("totalPatients").textContent = patients.length;
       document.getElementById("greenCount").textContent = green;
       document.getElementById("yellowCount").textContent = yellow;
       document.getElementById("redCount").textContent = red;
@@ -269,8 +309,9 @@
       }
 
       const sorted = [...patients].sort((a, b) => {
-        const order = { red: 0, yellow: 1, green: 2 };
-        return order[a.status] - order[b.status];
+        const byStatus = statusOrder(a.status) - statusOrder(b.status);
+        if (byStatus !== 0) return byStatus;
+        return (a.score ?? 999) - (b.score ?? 999);
       });
 
       sorted.forEach((patient, index) => {
@@ -300,7 +341,13 @@
 
       noData.style.display = "none";
 
-      patients.forEach((patient) => {
+      const sorted = [...patients].sort((a, b) => {
+        const byStatus = statusOrder(a.status) - statusOrder(b.status);
+        if (byStatus !== 0) return byStatus;
+        return (a.score ?? 999) - (b.score ?? 999);
+      });
+
+      sorted.forEach((patient) => {
         const row = document.createElement("tr");
         row.innerHTML = `
           <td>${patient.name}</td>
@@ -319,6 +366,76 @@
       });
     }
 
+    function renderAll() {
+      localStorage.setItem("cp_demo_patients", JSON.stringify(patients));
+      renderSummary();
+      renderPriorityQueue();
+      renderPatientTable();
+    }
+
+    function loadDemoPatients() {
+      patients = [
+        {
+          name: patientName || "Katherine Owen",
+          condition: patientCondition || "CHF",
+          status: localStorage.getItem("carepath_status") || "green",
+          score: Number(localStorage.getItem("carepath_score")) || 92,
+          weight: localStorage.getItem("carepath_weight") || "178",
+          meds: localStorage.getItem("carepath_meds") || "Yes",
+          support: patientSupport || "Yes",
+          submittedAt: new Date().toISOString()
+        },
+        {
+          name: "Maria Gonzalez",
+          condition: "CHF",
+          status: "red",
+          score: 42,
+          weight: "211",
+          meds: "No",
+          support: "No",
+          submittedAt: new Date(Date.now() - 1000 * 60 * 18).toISOString()
+        },
+        {
+          name: "James Carter",
+          condition: "Diabetes",
+          status: "yellow",
+          score: 74,
+          weight: "196",
+          meds: "Not sure",
+          support: "Yes",
+          submittedAt: new Date(Date.now() - 1000 * 60 * 42).toISOString()
+        },
+        {
+          name: "Linda Brooks",
+          condition: "Post-Surgery",
+          status: "green",
+          score: 96,
+          weight: "154",
+          meds: "Yes",
+          support: "Yes",
+          submittedAt: new Date(Date.now() - 1000 * 60 * 63).toISOString()
+        },
+        {
+          name: "Robert Miles",
+          condition: "CHF",
+          status: "yellow",
+          score: 68,
+          weight: "203",
+          meds: "Yes",
+          support: "No",
+          submittedAt: new Date(Date.now() - 1000 * 60 * 95).toISOString()
+        }
+      ];
+
+      renderAll();
+    }
+
+    function clearDemoPatients() {
+      patients = [];
+      localStorage.removeItem("cp_demo_patients");
+      renderAll();
+    }
+
     function goToPatientHome() {
       window.location.href = "patient.html";
     }
@@ -327,9 +444,7 @@
       window.location.href = "index.html";
     }
 
-    renderSummary();
-    renderPriorityQueue();
-    renderPatientTable();
+    renderAll();
   </script>
 </body>
 </html>
