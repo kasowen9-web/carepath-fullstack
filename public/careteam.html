@@ -51,6 +51,61 @@
       margin-bottom: 4px;
     }
 
+    .coordinator-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .coordinator-card {
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+
+    .coordinator-card .label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #6b7280;
+      margin-bottom: 8px;
+    }
+
+    .coordinator-card .value {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .coordinator-card .desc {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+
+    .coordinator-red {
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    .coordinator-yellow {
+      background: #fffbeb;
+      border-color: #fde68a;
+    }
+
+    .coordinator-green {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+
+    .coordinator-blue {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+
     .chart-wrap {
       margin-top: 16px;
       padding: 12px;
@@ -323,6 +378,39 @@
     </div>
 
     <div class="team-card">
+      <h2>Coordinator Summary</h2>
+      <p class="muted-text">
+        Daily operational snapshot for rapid prioritization.
+      </p>
+
+      <div class="coordinator-grid">
+        <div class="coordinator-card coordinator-red">
+          <div class="label">Needs Action Now</div>
+          <div class="value" id="needsActionNow">0</div>
+          <div class="desc">Yellow/red patients with active attention needs.</div>
+        </div>
+
+        <div class="coordinator-card coordinator-yellow">
+          <div class="label">Escalated Today</div>
+          <div class="value" id="escalatedToday">0</div>
+          <div class="desc">Documented escalations to provider today.</div>
+        </div>
+
+        <div class="coordinator-card coordinator-green">
+          <div class="label">Improving Today</div>
+          <div class="value" id="improvingToday">0</div>
+          <div class="desc">Patients trending upward in execution reliability.</div>
+        </div>
+
+        <div class="coordinator-card coordinator-blue">
+          <div class="label">Declining Today</div>
+          <div class="value" id="decliningToday">0</div>
+          <div class="desc">Patients trending downward and needing closer review.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="team-card">
       <h2>Priority Queue</h2>
       <p class="muted-text">
         Patients needing the fastest attention should rise to the top.
@@ -466,6 +554,15 @@
       const date = new Date(value);
       if (Number.isNaN(date.getTime())) return value;
       return date.toLocaleString();
+    }
+
+    function isToday(value) {
+      if (!value) return false;
+      const d = new Date(value);
+      const now = new Date();
+      return d.getFullYear() === now.getFullYear() &&
+             d.getMonth() === now.getMonth() &&
+             d.getDate() === now.getDate();
     }
 
     function statusClass(status) {
@@ -642,6 +739,27 @@
       document.getElementById("greenCount").textContent = green;
       document.getElementById("yellowCount").textContent = yellow;
       document.getElementById("redCount").textContent = red;
+    }
+
+    function renderCoordinatorSummary() {
+      const needsActionNow = patients.filter(p => p.status === "red" || p.status === "yellow").length;
+
+      let escalatedToday = 0;
+      Object.values(actionLog).forEach(history => {
+        history.forEach(item => {
+          if (item.action === "Escalated to provider" && isToday(item.time)) {
+            escalatedToday += 1;
+          }
+        });
+      });
+
+      const improvingToday = patients.filter(p => p.trend === "↑ Improving").length;
+      const decliningToday = patients.filter(p => p.trend === "↓ Declining").length;
+
+      document.getElementById("needsActionNow").textContent = needsActionNow;
+      document.getElementById("escalatedToday").textContent = escalatedToday;
+      document.getElementById("improvingToday").textContent = improvingToday;
+      document.getElementById("decliningToday").textContent = decliningToday;
     }
 
     function renderPriorityQueue() {
@@ -838,11 +956,13 @@
       localStorage.setItem("cp_action_log", JSON.stringify(actionLog));
       renderPriorityQueue();
       renderRecommendation(patient);
+      renderCoordinatorSummary();
     }
 
     function renderAll() {
       localStorage.setItem("cp_demo_patients", JSON.stringify(patients));
       renderSummary();
+      renderCoordinatorSummary();
       renderPriorityQueue();
       renderPatientTable();
       selectedPatientIndex = null;
