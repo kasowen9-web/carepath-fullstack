@@ -8,29 +8,12 @@
   <style>
     .patient-page {
       width: 100%;
-      max-width: 720px;
+      max-width: 760px;
       margin: 40px auto;
       padding: 0 16px 40px;
     }
 
-    .patient-hero {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-    }
-
-    .patient-hero h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
-    }
-
-    .patient-hero p {
-      margin: 0;
-      color: #6b7280;
-    }
-
+    .patient-hero,
     .patient-card {
       background: white;
       border-radius: 16px;
@@ -39,10 +22,46 @@
       margin-bottom: 20px;
     }
 
+    .patient-hero h1,
     .patient-card h2 {
       margin-top: 0;
-      margin-bottom: 12px;
-      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .muted-text {
+      color: #6b7280;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: capitalize;
+      margin-top: 12px;
+    }
+
+    .status-green {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .status-yellow {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-red {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .escalation-text {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.4;
     }
 
     .task-list {
@@ -78,17 +97,6 @@
     .secondary-btn {
       background: #e5e7eb;
       color: #111827;
-    }
-
-    .status-pill {
-      display: inline-block;
-      background: #dbeafe;
-      color: #1d4ed8;
-      border-radius: 999px;
-      padding: 6px 12px;
-      font-size: 14px;
-      font-weight: 600;
-      margin-top: 12px;
     }
 
     .summary-grid {
@@ -127,13 +135,15 @@
   <div class="patient-page">
     <div class="patient-hero">
       <h1>Welcome, <span id="patientName">Patient</span></h1>
-      <p id="patientSubtitle">Your CarePath is active and ready.</p>
-      <div class="status-pill">CarePath Active</div>
+      <p id="patientSubtitle" class="muted-text">Your CarePath is active and ready for today.</p>
+
+      <div id="patientStatus" class="status-pill status-green">green</div>
+      <div id="patientEscalation" class="escalation-text">On track</div>
     </div>
 
     <div class="patient-card">
       <h2>Today’s Guided Steps</h2>
-      <p>Complete these steps to stay on track with your care plan.</p>
+      <p class="muted-text">Complete these steps to stay on track with your care plan.</p>
 
       <div class="task-list">
         <div class="task-item">
@@ -193,12 +203,10 @@
     const savedDate = localStorage.getItem("cp_date");
     const savedSupport = localStorage.getItem("cp_support");
     const savedMeds = localStorage.getItem("cp_meds");
-    const lastCheckin = localStorage.getItem("cp_last_checkin");
+    const lastCheckinRaw = localStorage.getItem("cp_last_checkin");
 
     if (savedName) {
       document.getElementById("patientName").textContent = savedName;
-      document.getElementById("patientSubtitle").textContent =
-        "Your CarePath is active and ready for today.";
     }
 
     if (savedCondition) {
@@ -217,10 +225,42 @@
       document.getElementById("patientMeds").textContent = savedMeds;
     }
 
-    if (lastCheckin) {
+    function getStatusClass(status) {
+      if (status === "red") return "status-pill status-red";
+      if (status === "yellow") return "status-pill status-yellow";
+      return "status-pill status-green";
+    }
+
+    function getEscalationText(status) {
+      if (status === "red") return "Needs immediate attention";
+      if (status === "yellow") return "Monitor closely";
+      return "On track";
+    }
+
+    if (lastCheckinRaw) {
       try {
-        const parsed = JSON.parse(lastCheckin);
+        const parsed = JSON.parse(lastCheckinRaw);
         const summary = [];
+        let status = "green";
+
+        if (
+          parsed.shortnessOfBreath === "Severe" ||
+          parsed.swellingToday === "Severe"
+        ) {
+          status = "red";
+        } else if (
+          parsed.medsToday === "No" ||
+          parsed.shortnessOfBreath === "Moderate" ||
+          parsed.swellingToday === "Moderate"
+        ) {
+          status = "yellow";
+        }
+
+        const statusEl = document.getElementById("patientStatus");
+        statusEl.textContent = status;
+        statusEl.className = getStatusClass(status);
+
+        document.getElementById("patientEscalation").textContent = getEscalationText(status);
 
         if (parsed.weightToday) summary.push("Weight: " + parsed.weightToday);
         if (parsed.medsToday) summary.push("Meds: " + parsed.medsToday);
