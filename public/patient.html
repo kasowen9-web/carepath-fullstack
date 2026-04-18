@@ -71,6 +71,16 @@
       color: #111827;
     }
 
+    .trend-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
     .task-list {
       display: grid;
       gap: 12px;
@@ -147,6 +157,7 @@
       <div id="patientStatus" class="status-pill status-green">green</div>
       <div id="patientEscalation" class="escalation-text">On track</div>
       <div id="ersScore" class="score-text">Execution Score: --</div>
+      <div id="trendBox" class="trend-box">No trend data yet.</div>
     </div>
 
     <div class="patient-card">
@@ -245,6 +256,34 @@
       return "On track";
     }
 
+    function renderTrend() {
+      const history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
+      const box = document.getElementById("trendBox");
+
+      if (!history.length) {
+        box.innerHTML = "<strong>Execution Trend</strong><br><span class='muted-text'>No trend data yet.</span>";
+        return;
+      }
+
+      let direction = "→ Stable";
+      if (history.length >= 2) {
+        const last = history[history.length - 1].score;
+        const prev = history[history.length - 2].score;
+
+        if (last > prev) direction = "↑ Improving";
+        if (last < prev) direction = "↓ Declining";
+      }
+
+      let html = "<strong>Execution Trend</strong><br>";
+      html += direction + "<br><br>";
+
+      history.slice(-5).forEach(entry => {
+        html += `• ${entry.score} (${new Date(entry.time).toLocaleDateString()})<br>`;
+      });
+
+      box.innerHTML = html;
+    }
+
     if (lastCheckinRaw) {
       try {
         const parsed = JSON.parse(lastCheckinRaw);
@@ -272,6 +311,8 @@
         console.error("Unable to read last check-in", e);
       }
     }
+
+    renderTrend();
 
     function startCheckIn() {
       window.location.href = "checkin.html";
