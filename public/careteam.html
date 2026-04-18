@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Care Team Command Center</title>
+<title>CarePath Command Center</title>
 
 <style>
 body { font-family: Arial; background:#f3f4f6; margin:0; }
@@ -37,26 +37,15 @@ body { font-family: Arial; background:#f3f4f6; margin:0; }
 .blue { background:#e0f2fe; }
 
 .alert-banner {
-  padding:14px 16px;
+  padding:14px;
   border-radius:10px;
   font-weight:700;
   margin-bottom:16px;
 }
 
-.alert-red {
-  background:#991b1b;
-  color:white;
-}
-
-.alert-yellow {
-  background:#92400e;
-  color:white;
-}
-
-.alert-green {
-  background:#166534;
-  color:white;
-}
+.alert-red { background:#991b1b; color:white; }
+.alert-yellow { background:#92400e; color:white; }
+.alert-green { background:#166534; color:white; }
 
 .command-strip {
   display:grid;
@@ -71,31 +60,11 @@ body { font-family: Arial; background:#f3f4f6; margin:0; }
   padding:18px;
 }
 
-.panel h2 {
-  margin-top:0;
-}
-
-.live-list {
-  margin-top:12px;
-  display:grid;
-  gap:10px;
-}
-
 .live-item {
   background:#1f2937;
   padding:12px;
   border-radius:10px;
-  border-left:5px solid #2563eb;
-}
-
-.live-item.redline { border-left-color:#ef4444; }
-.live-item.yellowline { border-left-color:#f59e0b; }
-.live-item.greenline { border-left-color:#10b981; }
-
-.live-item .time {
-  font-size:12px;
-  color:#9ca3af;
-  margin-top:4px;
+  margin-top:10px;
 }
 
 table {
@@ -107,7 +76,6 @@ table {
 th, td {
   padding:10px;
   border-bottom:1px solid #e5e7eb;
-  text-align:left;
 }
 
 .status {
@@ -137,24 +105,12 @@ th, td {
   border-radius:12px;
   padding:14px;
   margin-top:12px;
-  background:#f9fafb;
-}
-
-.small {
-  font-size:13px;
-  color:#6b7280;
-  margin-top:6px;
 }
 
 button {
   padding:10px 14px;
   margin-right:8px;
-  margin-top:8px;
-}
-
-@media (max-width: 900px) {
-  .grid { grid-template-columns: repeat(2,1fr); }
-  .command-strip { grid-template-columns: 1fr; }
+  margin-top:10px;
 }
 </style>
 </head>
@@ -163,89 +119,37 @@ button {
 
 <div class="container">
 
-<h1>Care Team Command Center</h1>
+<h1>CarePath Command Center</h1>
+
+<div>
+  <button onclick="goNotifications()">Notification Inbox</button>
+</div>
 
 <div id="topAlert"></div>
 
 <div class="command-strip">
   <div class="panel">
-    <h2>Live Alert Feed</h2>
-    <div id="liveFeed" class="live-list"></div>
+    <h2>Live Alerts</h2>
+    <div id="liveFeed"></div>
   </div>
 
   <div class="panel">
     <h2>Command Status</h2>
-    <p><strong id="commandMode">Monitoring</strong></p>
-    <p id="commandSummary">No urgent alerts right now.</p>
-    <button onclick="simulateAlert()">Simulate New Alert</button>
-    <button onclick="clearAlerts()">Clear Alerts</button>
+    <p id="commandMode">Monitoring</p>
+    <button onclick="simulateAlert()">Simulate Alert</button>
   </div>
 </div>
 
-<!-- COORDINATOR SUMMARY -->
 <div class="card">
 <h2>Coordinator Summary</h2>
 <div class="grid">
-
-<div class="metric red">
-<h3>Needs Action</h3>
-<p id="needsAction">0</p>
-</div>
-
-<div class="metric yellow">
-<h3>Escalated Today</h3>
-<p id="escalated">0</p>
-</div>
-
-<div class="metric green">
-<h3>Improving</h3>
-<p id="improving">0</p>
-</div>
-
-<div class="metric blue">
-<h3>Declining</h3>
-<p id="declining">0</p>
-</div>
-
+<div class="metric red"><h3>Needs Action</h3><p id="needsAction">0</p></div>
+<div class="metric yellow"><h3>Escalated</h3><p id="escalated">0</p></div>
+<div class="metric green"><h3>Improving</h3><p id="improving">0</p></div>
+<div class="metric blue"><h3>Declining</h3><p id="declining">0</p></div>
 </div>
 </div>
 
-<!-- PILOT METRICS -->
-<div class="card">
-<h2>Pilot Metrics</h2>
-
-<div class="grid">
-
-<div class="metric blue">
-<h3>Check-Ins Today</h3>
-<p id="checkins">0</p>
-</div>
-
-<div class="metric green">
-<h3>Adherence</h3>
-<p id="adherence">0%</p>
-</div>
-
-<div class="metric">
-<h3>Average ERS</h3>
-<p id="avg">0</p>
-</div>
-
-<div class="metric red">
-<h3>High Risk</h3>
-<p id="risk">0</p>
-</div>
-
-</div>
-</div>
-
-<!-- PRIORITY -->
-<div class="card">
-<h2>Priority Queue</h2>
-<div id="priorityQueue"></div>
-</div>
-
-<!-- TABLE -->
 <div class="card">
 <h2>Patients</h2>
 
@@ -267,9 +171,14 @@ button {
 </div>
 
 <script>
+
 let patients = JSON.parse(localStorage.getItem("cp_demo_patients") || "[]");
-let history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
 let alertFeed = JSON.parse(localStorage.getItem("cp_alert_feed") || "[]");
+
+// NAV
+function goNotifications(){
+  window.location.href = "notifications.html";
+}
 
 // CLICK PATIENT
 function openPatient(p){
@@ -277,142 +186,47 @@ function openPatient(p){
   window.location.href = "patient-detail.html";
 }
 
-// SORT
-function sortPatients(){
-  const order = {"Tier 3":0,"Tier 2":1,"Tier 1":2};
-  patients.sort((a,b)=>order[a.tier]-order[b.tier]);
-}
-
-function saveAlerts() {
-  localStorage.setItem("cp_alert_feed", JSON.stringify(alertFeed));
-}
-
-function getNowTime() {
-  return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-}
-
-function pushAutoAlerts() {
-  patients.forEach(p => {
-    if ((p.status === "red" || p.tier === "Tier 3") && p.trend === "↓ Declining") {
-      const text = `${p.name} is deteriorating — ${p.tier}, ERS ${p.score}`;
-      const exists = alertFeed.find(a => a.text === text);
-      if (!exists) {
-        alertFeed.unshift({
-          level: "red",
-          text,
-          time: getNowTime()
-        });
-      }
-    } else if (p.status === "yellow" && p.trend === "↓ Declining") {
-      const text = `${p.name} needs same-day review — ${p.tier}, ERS ${p.score}`;
-      const exists = alertFeed.find(a => a.text === text);
-      if (!exists) {
-        alertFeed.unshift({
-          level: "yellow",
-          text,
-          time: getNowTime()
-        });
-      }
+// ALERT ENGINE
+function pushAlerts(){
+  patients.forEach(p=>{
+    if(p.status==="red" && p.trend==="↓ Declining"){
+      alertFeed.unshift({
+        level:"red",
+        text:`${p.name} deteriorating - ERS ${p.score}`,
+        time:new Date().toLocaleTimeString()
+      });
     }
   });
 
-  alertFeed = alertFeed.slice(0, 8);
-  saveAlerts();
+  alertFeed = alertFeed.slice(0,6);
+  localStorage.setItem("cp_alert_feed", JSON.stringify(alertFeed));
 }
 
-function renderTopAlert() {
-  const el = document.getElementById("topAlert");
-  const commandMode = document.getElementById("commandMode");
-  const commandSummary = document.getElementById("commandSummary");
-
-  if (!alertFeed.length) {
-    el.innerHTML = `<div class="alert-banner alert-green">System stable — no urgent deterioration alerts.</div>`;
-    commandMode.innerText = "Monitoring";
-    commandSummary.innerText = "No urgent alerts right now.";
+// RENDER ALERT
+function renderAlerts(){
+  let top = alertFeed[0];
+  if(!top){
+    document.getElementById("topAlert").innerHTML =
+    `<div class="alert-banner alert-green">System Stable</div>`;
     return;
   }
 
-  const top = alertFeed[0];
+  let color = top.level==="red"?"alert-red":"alert-yellow";
 
-  if (top.level === "red") {
-    el.innerHTML = `<div class="alert-banner alert-red">LIVE ALERT: ${top.text}</div>`;
-    commandMode.innerText = "Immediate Response";
-    commandSummary.innerText = "A high-risk deteriorating patient needs attention now.";
-  } else if (top.level === "yellow") {
-    el.innerHTML = `<div class="alert-banner alert-yellow">WATCH ALERT: ${top.text}</div>`;
-    commandMode.innerText = "Same-Day Review";
-    commandSummary.innerText = "A rising-risk patient needs same-day review.";
-  } else {
-    el.innerHTML = `<div class="alert-banner alert-green">${top.text}</div>`;
-    commandMode.innerText = "Monitoring";
-    commandSummary.innerText = "No urgent alerts right now.";
-  }
-}
+  document.getElementById("topAlert").innerHTML =
+  `<div class="alert-banner ${color}">${top.text}</div>`;
 
-function renderLiveFeed() {
-  const el = document.getElementById("liveFeed");
-
-  if (!alertFeed.length) {
-    el.innerHTML = `<div class="live-item greenline">No alerts in feed<div class="time">System idle</div></div>`;
-    return;
-  }
-
-  let html = "";
-  alertFeed.forEach(a => {
-    const lineClass = a.level === "red" ? "redline" : a.level === "yellow" ? "yellowline" : "greenline";
-    html += `
-      <div class="live-item ${lineClass}">
-        ${a.text}
-        <div class="time">${a.time}</div>
-      </div>
-    `;
+  let feedHTML="";
+  alertFeed.forEach(a=>{
+    feedHTML += `<div class="live-item">${a.text}</div>`;
   });
 
-  el.innerHTML = html;
-}
-
-function simulateAlert() {
-  alertFeed.unshift({
-    level: "red",
-    text: "Simulated live alert — patient deterioration detected",
-    time: getNowTime()
-  });
-  alertFeed = alertFeed.slice(0, 8);
-  saveAlerts();
-  renderTopAlert();
-  renderLiveFeed();
-}
-
-function clearAlerts() {
-  alertFeed = [];
-  saveAlerts();
-  renderTopAlert();
-  renderLiveFeed();
-}
-
-// PRIORITY
-function renderPriority(){
-  sortPatients();
-  let html="";
-
-  patients.forEach((p,i)=>{
-    html += `
-    <div class="priority-box">
-      <strong>${i+1}. ${p.name}</strong><br>
-      <span class="status status-${p.status}">${p.status}</span>
-      <span class="tier ${p.tier === "Tier 3" ? "t3" : p.tier === "Tier 2" ? "t2" : "t1"}">${p.tier}</span>
-      <div class="small">ERS ${p.score} • ${p.trend}</div>
-    </div>`;
-  });
-
-  document.getElementById("priorityQueue").innerHTML = html || "<div class='small'>No patients yet.</div>";
+  document.getElementById("liveFeed").innerHTML = feedHTML;
 }
 
 // TABLE
 function renderTable(){
-  sortPatients();
   let html="";
-
   patients.forEach(p=>{
     html += `
     <tr onclick='openPatient(${JSON.stringify(p)})' style="cursor:pointer;">
@@ -420,61 +234,44 @@ function renderTable(){
       <td><span class="status status-${p.status}">${p.status}</span></td>
       <td>${p.score}</td>
       <td>${p.trend}</td>
-      <td><span class="tier ${p.tier === "Tier 3" ? "t3" : p.tier === "Tier 2" ? "t2" : "t1"}">${p.tier}</span></td>
+      <td><span class="tier ${p.tier==="Tier 3"?"t3":p.tier==="Tier 2"?"t2":"t1"}">${p.tier}</span></td>
     </tr>`;
   });
-
   document.getElementById("table").innerHTML = html;
 }
 
 // METRICS
 function renderMetrics(){
+document.getElementById("needsAction").innerText =
+patients.filter(p=>p.tier!=="Tier 1").length;
 
-let needsAction = patients.filter(p=>p.tier!=="Tier 1").length;
-let improving = patients.filter(p=>p.trend.includes("↑")).length;
-let declining = patients.filter(p=>p.trend.includes("↓")).length;
-let highRisk = patients.filter(p=>p.tier==="Tier 3").length;
+document.getElementById("improving").innerText =
+patients.filter(p=>p.trend.includes("↑")).length;
 
-let avg = patients.length
-? Math.round(patients.reduce((s,p)=>s+p.score,0)/patients.length)
-:0;
+document.getElementById("declining").innerText =
+patients.filter(p=>p.trend.includes("↓")).length;
 
-let adherence = patients.length
-? Math.round((patients.filter(p=>p.score>=80).length / patients.length)*100)
-:0;
-
-let today = new Date();
-let checkinsToday = history.filter(h=>{
-let d=new Date(h.time);
-return d.toDateString() === today.toDateString();
-}).length;
-
-document.getElementById("needsAction").innerText = needsAction;
-document.getElementById("improving").innerText = improving;
-document.getElementById("declining").innerText = declining;
-document.getElementById("risk").innerText = highRisk;
-document.getElementById("avg").innerText = avg;
-document.getElementById("adherence").innerText = adherence+"%";
-document.getElementById("checkins").innerText = checkinsToday;
-document.getElementById("escalated").innerText = highRisk;
-
+document.getElementById("escalated").innerText =
+patients.filter(p=>p.tier==="Tier 3").length;
 }
 
-function renderAll() {
-  patients = JSON.parse(localStorage.getItem("cp_demo_patients") || "[]");
-  history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
-  alertFeed = JSON.parse(localStorage.getItem("cp_alert_feed") || "[]");
-
-  pushAutoAlerts();
-  renderTopAlert();
-  renderLiveFeed();
-  renderPriority();
-  renderTable();
-  renderMetrics();
+// SIMULATE
+function simulateAlert(){
+  alertFeed.unshift({
+    level:"red",
+    text:"Simulated patient deterioration",
+    time:new Date().toLocaleTimeString()
+  });
+  localStorage.setItem("cp_alert_feed", JSON.stringify(alertFeed));
+  renderAlerts();
 }
 
 // INIT
-renderAll();
+pushAlerts();
+renderAlerts();
+renderTable();
+renderMetrics();
+
 </script>
 
 </body>
