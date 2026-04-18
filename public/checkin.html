@@ -68,7 +68,7 @@ let meds = document.getElementById("meds").value;
 let breath = document.getElementById("breath").value;
 let swelling = document.getElementById("swelling").value;
 
-// ----- SCORE LOGIC -----
+// ----- SCORE -----
 let score = 100;
 
 if(meds === "No") score -= 30;
@@ -81,6 +81,19 @@ let status = "green";
 if(score < 80) status = "yellow";
 if(score < 60) status = "red";
 
+// ----- GET HISTORY -----
+let history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
+
+// ----- DETERMINE TREND -----
+let trend = "→ Stable";
+
+if(history.length > 0){
+  let lastScore = history[history.length - 1].score;
+
+  if(score > lastScore) trend = "↑ Improving";
+  if(score < lastScore) trend = "↓ Declining";
+}
+
 // ----- SAVE CHECK-IN -----
 const data = {
   weightToday: weight,
@@ -89,14 +102,13 @@ const data = {
   swellingToday: swelling,
   score: score,
   status: status,
+  trend: trend,
   submittedAt: new Date().toISOString()
 };
 
 localStorage.setItem("cp_last_checkin", JSON.stringify(data));
 
 // ----- SAVE HISTORY -----
-let history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
-
 history.push({
   score: score,
   time: new Date().toISOString()
@@ -104,21 +116,28 @@ history.push({
 
 localStorage.setItem("cp_score_history", JSON.stringify(history));
 
-// ----- ADD TO DASHBOARD PATIENTS -----
+// ----- UPDATE PATIENT LIST -----
 let patients = JSON.parse(localStorage.getItem("cp_demo_patients") || "[]");
 
 const newPatient = {
   name: localStorage.getItem("cp_name") || "Patient",
   status: status,
   score: score,
-  trend: "→ Stable"
+  trend: trend
 };
 
-patients.push(newPatient);
+// replace existing patient (prevents duplicates)
+let index = patients.findIndex(p => p.name === newPatient.name);
+
+if(index >= 0){
+  patients[index] = newPatient;
+}else{
+  patients.push(newPatient);
+}
 
 localStorage.setItem("cp_demo_patients", JSON.stringify(patients));
 
-// ----- GO BACK TO DASHBOARD -----
+// ----- REDIRECT -----
 window.location.href = "careteam.html";
 
 }
