@@ -7,7 +7,6 @@
 
 <style>
 body { font-family: Arial; background:#f3f4f6; margin:0; }
-
 .container { max-width:1100px; margin:auto; padding:20px; }
 
 .card {
@@ -40,30 +39,56 @@ body { font-family: Arial; background:#f3f4f6; margin:0; }
 table {
   width:100%;
   border-collapse:collapse;
+  margin-top:16px;
 }
 
 th, td {
   padding:10px;
   border-bottom:1px solid #e5e7eb;
+  text-align:left;
 }
 
 .status {
   padding:4px 10px;
   border-radius:20px;
   font-size:12px;
+  font-weight:700;
 }
 
 .status-green { background:#dcfce7; }
 .status-yellow { background:#fef3c7; }
 .status-red { background:#fee2e2; }
 
-.alert {
-  padding:10px;
-  border-radius:8px;
-  margin-top:10px;
-  font-weight:bold;
+.tier-pill {
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:700;
 }
 
+.tier1 { background:#dcfce7; color:#166534; }
+.tier2 { background:#fef3c7; color:#92400e; }
+.tier3 { background:#fee2e2; color:#991b1b; }
+
+.priority-box {
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  padding:14px;
+  margin-top:12px;
+  background:#f9fafb;
+}
+
+.small {
+  font-size:13px;
+  color:#6b7280;
+  margin-top:6px;
+}
+
+button {
+  padding:10px 14px;
+  margin-right:8px;
+}
 </style>
 </head>
 
@@ -71,139 +96,195 @@ th, td {
 
 <div class="container">
 
-<h1>Care Team Dashboard</h1>
+  <h1>Care Team Dashboard</h1>
 
-<!-- COORDINATOR SUMMARY -->
-<div class="card">
-<h2>Coordinator Summary</h2>
-<div class="grid">
+  <div class="card">
+    <h2>Coordinator Summary</h2>
+    <div class="grid">
+      <div class="metric red">
+        <h3>Needs Action</h3>
+        <p id="needsAction">0</p>
+      </div>
+      <div class="metric yellow">
+        <h3>Escalated Today</h3>
+        <p id="escalated">0</p>
+      </div>
+      <div class="metric green">
+        <h3>Improving</h3>
+        <p id="improving">0</p>
+      </div>
+      <div class="metric blue">
+        <h3>Declining</h3>
+        <p id="declining">0</p>
+      </div>
+    </div>
+  </div>
 
-<div class="metric red">
-<h3>Needs Action</h3>
-<p id="needsAction">0</p>
-</div>
+  <div class="card">
+    <h2>Pilot Metrics</h2>
+    <div class="grid">
+      <div class="metric blue">
+        <h3>Check-Ins Today</h3>
+        <p id="checkins">0</p>
+      </div>
+      <div class="metric green">
+        <h3>Adherence</h3>
+        <p id="adherence">0%</p>
+      </div>
+      <div class="metric">
+        <h3>Average ERS</h3>
+        <p id="avg">0</p>
+      </div>
+      <div class="metric red">
+        <h3>High Risk</h3>
+        <p id="risk">0</p>
+      </div>
+    </div>
+  </div>
 
-<div class="metric yellow">
-<h3>Escalated Today</h3>
-<p id="escalated">0</p>
-</div>
+  <div class="card">
+    <h2>Priority Queue</h2>
+    <div id="priorityQueue"></div>
+  </div>
 
-<div class="metric green">
-<h3>Improving</h3>
-<p id="improving">0</p>
-</div>
+  <div class="card">
+    <h2>Patients</h2>
+    <button onclick="loadDemoPatients()">Load Demo Patients</button>
+    <button onclick="clearPatients()">Clear</button>
 
-<div class="metric blue">
-<h3>Declining</h3>
-<p id="declining">0</p>
-</div>
-
-</div>
-</div>
-
-<!-- PILOT METRICS -->
-<div class="card">
-<h2>Pilot Metrics</h2>
-
-<div class="grid">
-
-<div class="metric blue">
-<h3>Check-ins Today</h3>
-<p id="checkins">0</p>
-</div>
-
-<div class="metric green">
-<h3>Adherence</h3>
-<p id="adherence">0%</p>
-</div>
-
-<div class="metric">
-<h3>Average ERS</h3>
-<p id="avg">0</p>
-</div>
-
-<div class="metric red">
-<h3>High Risk</h3>
-<p id="risk">0</p>
-</div>
-
-</div>
-</div>
-
-<!-- PATIENT TABLE -->
-<div class="card">
-<h2>Patients</h2>
-
-<table>
-<thead>
-<tr>
-<th>Name</th>
-<th>Status</th>
-<th>ERS</th>
-<th>Trend</th>
-</tr>
-</thead>
-<tbody id="table"></tbody>
-</table>
-
-</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>ERS</th>
+          <th>Trend</th>
+          <th>Risk Tier</th>
+        </tr>
+      </thead>
+      <tbody id="table"></tbody>
+    </table>
+  </div>
 
 </div>
 
 <script>
+let patients = JSON.parse(localStorage.getItem("cp_demo_patients") || "[]");
+let history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
 
-let patients = [
- {name:"Maria", status:"red", score:40, trend:"↓ Declining"},
- {name:"James", status:"yellow", score:70, trend:"↓ Declining"},
- {name:"Linda", status:"green", score:95, trend:"↑ Improving"},
- {name:"Robert", status:"yellow", score:65, trend:"→ Stable"}
-];
-
-// ---------- RENDER TABLE ----------
-function renderTable(){
- let html="";
- patients.forEach(p=>{
-   html += `
-   <tr>
-   <td>${p.name}</td>
-   <td><span class="status status-${p.status}">${p.status}</span></td>
-   <td>${p.score}</td>
-   <td>${p.trend}</td>
-   </tr>
-   `;
- });
- document.getElementById("table").innerHTML = html;
+function getStatusClass(status) {
+  if (status === "red") return "status status-red";
+  if (status === "yellow") return "status status-yellow";
+  return "status status-green";
 }
 
-// ---------- METRICS ----------
-function renderMetrics(){
-
- let needsAction = patients.filter(p=>p.status!=="green").length;
- let improving = patients.filter(p=>p.trend.includes("↑")).length;
- let declining = patients.filter(p=>p.trend.includes("↓")).length;
- let highRisk = patients.filter(p=>p.status==="red").length;
-
- let avg = Math.round(
-   patients.reduce((sum,p)=>sum+p.score,0)/patients.length
- );
-
- let adherence = Math.round(
-   (patients.filter(p=>p.score>=80).length / patients.length)*100
- );
-
- document.getElementById("needsAction").innerText = needsAction;
- document.getElementById("improving").innerText = improving;
- document.getElementById("declining").innerText = declining;
- document.getElementById("risk").innerText = highRisk;
- document.getElementById("avg").innerText = avg;
- document.getElementById("adherence").innerText = adherence+"%";
-
+function getTierClass(tier) {
+  if (tier === "Tier 3") return "tier-pill tier3";
+  if (tier === "Tier 2") return "tier-pill tier2";
+  return "tier-pill tier1";
 }
 
-// ---------- INIT ----------
-renderTable();
-renderMetrics();
+function sortPatients() {
+  const order = { "Tier 3": 0, "Tier 2": 1, "Tier 1": 2 };
+  patients.sort((a, b) => order[a.tier] - order[b.tier]);
+}
 
+function renderPriorityQueue() {
+  sortPatients();
+  let html = "";
+
+  patients.forEach((p, i) => {
+    html += `
+      <div class="priority-box">
+        <strong>${i + 1}. ${p.name}</strong><br>
+        <span class="${getStatusClass(p.status)}">${p.status}</span>
+        <span class="${getTierClass(p.tier)}" style="margin-left:8px;">${p.tier}</span>
+        <div class="small">ERS ${p.score} • ${p.trend}</div>
+      </div>
+    `;
+  });
+
+  document.getElementById("priorityQueue").innerHTML = html || "<div class='small'>No patients yet.</div>";
+}
+
+function renderTable() {
+  sortPatients();
+  let html = "";
+
+  patients.forEach(p => {
+    html += `
+      <tr>
+        <td>${p.name}</td>
+        <td><span class="${getStatusClass(p.status)}">${p.status}</span></td>
+        <td>${p.score}</td>
+        <td>${p.trend}</td>
+        <td><span class="${getTierClass(p.tier)}">${p.tier}</span></td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("table").innerHTML = html;
+}
+
+function renderMetrics() {
+  let needsAction = patients.filter(p => p.tier === "Tier 2" || p.tier === "Tier 3").length;
+  let improving = patients.filter(p => p.trend.includes("↑")).length;
+  let declining = patients.filter(p => p.trend.includes("↓")).length;
+  let highRisk = patients.filter(p => p.tier === "Tier 3").length;
+
+  let avg = patients.length
+    ? Math.round(patients.reduce((sum, p) => sum + (Number(p.score) || 0), 0) / patients.length)
+    : 0;
+
+  let adherence = patients.length
+    ? Math.round((patients.filter(p => (Number(p.score) || 0) >= 80).length / patients.length) * 100)
+    : 0;
+
+  let today = new Date();
+  let checkinsToday = history.filter(entry => {
+    let d = new Date(entry.time);
+    return d.getFullYear() === today.getFullYear() &&
+           d.getMonth() === today.getMonth() &&
+           d.getDate() === today.getDate();
+  }).length;
+
+  document.getElementById("needsAction").innerText = needsAction;
+  document.getElementById("improving").innerText = improving;
+  document.getElementById("declining").innerText = declining;
+  document.getElementById("risk").innerText = highRisk;
+  document.getElementById("avg").innerText = avg;
+  document.getElementById("adherence").innerText = adherence + "%";
+  document.getElementById("checkins").innerText = checkinsToday;
+  document.getElementById("escalated").innerText = highRisk;
+}
+
+function loadDemoPatients() {
+  patients = [
+    { name: "Maria", status: "red", score: 40, trend: "↓ Declining", tier: "Tier 3" },
+    { name: "James", status: "yellow", score: 70, trend: "↓ Declining", tier: "Tier 3" },
+    { name: "Linda", status: "green", score: 95, trend: "↑ Improving", tier: "Tier 1" },
+    { name: "Robert", status: "yellow", score: 65, trend: "→ Stable", tier: "Tier 2" }
+  ];
+
+  localStorage.setItem("cp_demo_patients", JSON.stringify(patients));
+  renderAll();
+}
+
+function clearPatients() {
+  patients = [];
+  localStorage.removeItem("cp_demo_patients");
+  renderAll();
+}
+
+function renderAll() {
+  history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
+  patients = JSON.parse(localStorage.getItem("cp_demo_patients") || "[]");
+  renderPriorityQueue();
+  renderTable();
+  renderMetrics();
+}
+
+renderAll();
 </script>
 
 </body>
