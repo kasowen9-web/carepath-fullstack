@@ -177,6 +177,7 @@
             <th>Patient</th>
             <th>Program</th>
             <th>Status</th>
+            <th>ERS</th>
             <th>Latest Weight</th>
             <th>Medications</th>
             <th>Support</th>
@@ -209,25 +210,11 @@
       try {
         const checkin = JSON.parse(lastCheckinRaw);
 
-        let status = "green";
-
-        if (
-          checkin.shortnessOfBreath === "Severe" ||
-          checkin.swellingToday === "Severe"
-        ) {
-          status = "red";
-        } else if (
-          checkin.medsToday === "No" ||
-          checkin.shortnessOfBreath === "Moderate" ||
-          checkin.swellingToday === "Moderate"
-        ) {
-          status = "yellow";
-        }
-
         patients.push({
           name: checkin.name || patientName,
           condition: checkin.condition || patientCondition,
-          status,
+          status: checkin.status || "green",
+          score: checkin.score ?? "-",
           weight: checkin.weightToday || "—",
           meds: checkin.medsToday || "—",
           support: patientSupport,
@@ -294,7 +281,7 @@
           <span class="${statusClass(patient.status)}">${patient.status}</span>
           <div class="escalation-text">${getEscalationText(patient.status)}</div>
           <div style="margin-top: 8px;" class="muted-text">
-            ${patient.condition} • Weight: ${patient.weight} • Meds: ${patient.meds}
+            ${patient.condition} • ERS: ${patient.score} • Weight: ${patient.weight} • Meds: ${patient.meds}
           </div>
         `;
         queueEl.appendChild(div);
@@ -322,6 +309,7 @@
             <span class="${statusClass(patient.status)}">${patient.status}</span>
             <div class="escalation-text">${getEscalationText(patient.status)}</div>
           </td>
+          <td>${patient.score}</td>
           <td>${patient.weight}</td>
           <td>${patient.meds}</td>
           <td>${patient.support}</td>
