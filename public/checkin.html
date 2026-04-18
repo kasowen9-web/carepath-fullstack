@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarePath Daily Check-In</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .checkin-page {
+      width: 100%;
+      max-width: 760px;
+      margin: 40px auto;
+      padding: 0 16px 40px;
+    }
+
+    .checkin-hero,
+    .checkin-card,
+    .success-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+
+    .checkin-hero h1,
+    .checkin-card h2,
+    .success-card h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    .muted-text {
+      color: #6b7280;
+    }
+
+    .field-group {
+      margin-top: 18px;
+    }
+
+    .field-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #111827;
+    }
+
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+      background: #fff;
+    }
+
+    .field-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .secondary-btn {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .pill-option {
+      border: 1px solid #d1d5db;
+      border-radius: 999px;
+      padding: 10px 16px;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .pill-option.selected {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .summary-item {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .summary-item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="checkin-page">
+    <div class="checkin-hero">
+      <h1>Today’s Check-In</h1>
+      <p class="muted-text">
+        Complete today’s guided check-in so your care team can stay aligned to your progress.
+      </p>
+
+      <div class="summary-grid">
+        <div class="summary-item">
+          <strong>Patient</strong>
+          <span id="summaryName">Patient</span>
+        </div>
+        <div class="summary-item">
+          <strong>Program</strong>
+          <span id="summaryCondition">Not provided</span>
+        </div>
+        <div class="summary-item">
+          <strong>Discharge Date</strong>
+          <span id="summaryDate">Not provided</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="checkin-card" id="checkinFormCard">
+      <h2>Daily Check-In Questions</h2>
+      <p class="muted-text">Answer a few quick questions to help keep your care on track.</p>
+
+      <div class="field-group">
+        <label for="weightToday">Weight today</label>
+        <input type="number" id="weightToday" placeholder="Enter today’s weight">
+      </div>
+
+      <div class="field-group">
+        <label>Did you take your medications today?</label>
+        <div class="pill-row" id="medsRow">
+          <button type="button" class="pill-option" onclick="selectPill('meds', 'Yes', this)">Yes</button>
+          <button type="button" class="pill-option" onclick="selectPill('meds', 'No', this)">No</button>
+          <button type="button" class="pill-option" onclick="selectPill('meds', 'Not sure', this)">Not sure</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Shortness of breath today</label>
+        <div class="pill-row" id="breathRow">
+          <button type="button" class="pill-option" onclick="selectPill('breath', 'None', this)">None</button>
+          <button type="button" class="pill-option" onclick="selectPill('breath', 'Mild', this)">Mild</button>
+          <button type="button" class="pill-option" onclick="selectPill('breath', 'Moderate', this)">Moderate</button>
+          <button type="button" class="pill-option" onclick="selectPill('breath', 'Severe', this)">Severe</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Swelling today</label>
+        <div class="pill-row" id="swellingRow">
+          <button type="button" class="pill-option" onclick="selectPill('swelling', 'None', this)">None</button>
+          <button type="button" class="pill-option" onclick="selectPill('swelling', 'Mild', this)">Mild</button>
+          <button type="button" class="pill-option" onclick="selectPill('swelling', 'Moderate', this)">Moderate</button>
+          <button type="button" class="pill-option" onclick="selectPill('swelling', 'Severe', this)">Severe</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="notesToday">Anything you want your care team to know today?</label>
+        <textarea id="notesToday" placeholder="Optional notes"></textarea>
+      </div>
+
+      <div class="button-row">
+        <button type="button" class="secondary-btn" onclick="goToPatientHome()">Back</button>
+        <button type="button" onclick="submitCheckIn()">Submit Check-In</button>
+      </div>
+    </div>
+
+    <div class="success-card hidden" id="successCard">
+      <h2>Check-In Submitted</h2>
+      <p class="muted-text">
+        Your responses have been recorded for today.
+      </p>
+      <p>
+        <strong>Your responses guide your care team, so they can step in when support is needed.</strong>
+      </p>
+
+      <div class="button-row">
+        <button type="button" onclick="goToPatientHome()">Return to CarePath Home</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let checkinAnswers = {
+      meds: "",
+      breath: "",
+      swelling: ""
+    };
+
+    const savedName = localStorage.getItem("cp_name");
+    const savedCondition = localStorage.getItem("cp_condition");
+    const savedDate = localStorage.getItem("cp_date");
+
+    if (savedName) {
+      document.getElementById("summaryName").textContent = savedName;
+    }
+
+    if (savedCondition) {
+      document.getElementById("summaryCondition").textContent = savedCondition;
+    }
+
+    if (savedDate) {
+      document.getElementById("summaryDate").textContent = savedDate;
+    }
+
+    function selectPill(group, value, buttonEl) {
+      checkinAnswers[group] = value;
+
+      const rowMap = {
+        meds: "medsRow",
+        breath: "breathRow",
+        swelling: "swellingRow"
+      };
+
+      const row = document.getElementById(rowMap[group]);
+      if (!row) return;
+
+      row.querySelectorAll(".pill-option").forEach(btn => btn.classList.remove("selected"));
+      buttonEl.classList.add("selected");
+    }
+
+    function submitCheckIn() {
+      const weight = document.getElementById("weightToday").value.trim();
+      const notes = document.getElementById("notesToday").value.trim();
+
+      const payload = {
+        name: localStorage.getItem("cp_name") || "",
+        condition: localStorage.getItem("cp_condition") || "",
+        dischargeDate: localStorage.getItem("cp_date") || "",
+        weightToday: weight,
+        medsToday: checkinAnswers.meds,
+        shortnessOfBreath: checkinAnswers.breath,
+        swellingToday: checkinAnswers.swelling,
+        notesToday: notes,
+        submittedAt: new Date().toISOString()
+      };
+
+      localStorage.setItem("cp_last_checkin", JSON.stringify(payload));
+
+      document.getElementById("checkinFormCard").classList.add("hidden");
+      document.getElementById("successCard").classList.remove("hidden");
+    }
+
+    function goToPatientHome() {
+      window.location.href = "patient.html";
+    }
+  </script>
+</body>
+</html>
