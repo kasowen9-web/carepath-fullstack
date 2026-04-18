@@ -15,9 +15,22 @@ body { font-family: Arial; background:#f3f4f6; margin:0; }
   border-radius:12px;
 }
 
-button {
-  margin-top:15px;
+label {
+  display:block;
+  margin-top:14px;
+  margin-bottom:6px;
+  font-weight:600;
+}
+
+input, select {
+  width:100%;
   padding:10px;
+  box-sizing:border-box;
+}
+
+button {
+  margin-top:18px;
+  padding:12px;
   width:100%;
 }
 </style>
@@ -26,122 +39,124 @@ button {
 <body>
 
 <div class="container">
-<div class="card">
+  <div class="card">
 
-<h2>Daily Check-In</h2>
+    <h2>Daily Check-In</h2>
 
-<label>Weight today</label>
-<input id="weight" type="number" style="width:100%; padding:8px;">
+    <label>Weight today</label>
+    <input id="weight" type="number">
 
-<label>Did you take meds?</label>
-<select id="meds" style="width:100%; padding:8px;">
-<option>Yes</option>
-<option>No</option>
-<option>Not sure</option>
-</select>
+    <label>Did you take meds?</label>
+    <select id="meds">
+      <option>Yes</option>
+      <option>No</option>
+      <option>Not sure</option>
+    </select>
 
-<label>Shortness of breath</label>
-<select id="breath" style="width:100%; padding:8px;">
-<option>No</option>
-<option>Mild</option>
-<option>Severe</option>
-</select>
+    <label>Shortness of breath</label>
+    <select id="breath">
+      <option>No</option>
+      <option>Mild</option>
+      <option>Severe</option>
+    </select>
 
-<label>Swelling</label>
-<select id="swelling" style="width:100%; padding:8px;">
-<option>No</option>
-<option>Mild</option>
-<option>Severe</option>
-</select>
+    <label>Swelling</label>
+    <select id="swelling">
+      <option>No</option>
+      <option>Mild</option>
+      <option>Severe</option>
+    </select>
 
-<button onclick="submitCheckin()">Submit</button>
+    <button onclick="submitCheckin()">Submit</button>
 
-</div>
+  </div>
 </div>
 
 <script>
+function submitCheckin() {
+  let weight = document.getElementById("weight").value;
+  let meds = document.getElementById("meds").value;
+  let breath = document.getElementById("breath").value;
+  let swelling = document.getElementById("swelling").value;
 
-function submitCheckin(){
+  // ----- SCORE -----
+  let score = 100;
 
-let weight = document.getElementById("weight").value;
-let meds = document.getElementById("meds").value;
-let breath = document.getElementById("breath").value;
-let swelling = document.getElementById("swelling").value;
+  if (meds === "No") score -= 30;
+  if (breath === "Severe") score -= 30;
+  if (swelling === "Severe") score -= 20;
+  if (weight && Number(weight) > 200) score -= 10;
 
-// ----- SCORE -----
-let score = 100;
+  // ----- STATUS -----
+  let status = "green";
+  if (score < 80) status = "yellow";
+  if (score < 60) status = "red";
 
-if(meds === "No") score -= 30;
-if(breath === "Severe") score -= 30;
-if(swelling === "Severe") score -= 20;
-if(weight && weight > 200) score -= 10;
+  // ----- TREND -----
+  let history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
+  let trend = "→ Stable";
 
-// ----- STATUS -----
-let status = "green";
-if(score < 80) status = "yellow";
-if(score < 60) status = "red";
+  if (history.length > 0) {
+    let lastScore = history[history.length - 1].score;
+    if (score > lastScore) trend = "↑ Improving";
+    if (score < lastScore) trend = "↓ Declining";
+  }
 
-// ----- GET HISTORY -----
-let history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
+  // ----- RISK TIER -----
+  let tier = "Tier 1";
 
-// ----- DETERMINE TREND -----
-let trend = "→ Stable";
+  if (status === "red" || trend === "↓ Declining") {
+    tier = "Tier 3";
+  } else if (status === "yellow" || trend === "→ Stable") {
+    tier = "Tier 2";
+  }
 
-if(history.length > 0){
-  let lastScore = history[history.length - 1].score;
+  // ----- SAVE CHECK-IN -----
+  const data = {
+    weightToday: weight,
+    medsToday: meds,
+    shortnessOfBreath: breath,
+    swellingToday: swelling,
+    score: score,
+    status: status,
+    trend: trend,
+    tier: tier,
+    submittedAt: new Date().toISOString()
+  };
 
-  if(score > lastScore) trend = "↑ Improving";
-  if(score < lastScore) trend = "↓ Declining";
+  localStorage.setItem("cp_last_checkin", JSON.stringify(data));
+
+  // ----- SAVE HISTORY -----
+  history.push({
+    score: score,
+    time: new Date().toISOString()
+  });
+
+  localStorage.setItem("cp_score_history", JSON.stringify(history));
+
+  // ----- UPDATE PATIENT LIST -----
+  let patients = JSON.parse(localStorage.getItem("cp_demo_patients") || "[]");
+
+  const newPatient = {
+    name: localStorage.getItem("cp_name") || "Patient",
+    status: status,
+    score: score,
+    trend: trend,
+    tier: tier
+  };
+
+  let index = patients.findIndex(p => p.name === newPatient.name);
+
+  if (index >= 0) {
+    patients[index] = newPatient;
+  } else {
+    patients.push(newPatient);
+  }
+
+  localStorage.setItem("cp_demo_patients", JSON.stringify(patients));
+
+  window.location.href = "careteam.html";
 }
-
-// ----- SAVE CHECK-IN -----
-const data = {
-  weightToday: weight,
-  medsToday: meds,
-  shortnessOfBreath: breath,
-  swellingToday: swelling,
-  score: score,
-  status: status,
-  trend: trend,
-  submittedAt: new Date().toISOString()
-};
-
-localStorage.setItem("cp_last_checkin", JSON.stringify(data));
-
-// ----- SAVE HISTORY -----
-history.push({
-  score: score,
-  time: new Date().toISOString()
-});
-
-localStorage.setItem("cp_score_history", JSON.stringify(history));
-
-// ----- UPDATE PATIENT LIST -----
-let patients = JSON.parse(localStorage.getItem("cp_demo_patients") || "[]");
-
-const newPatient = {
-  name: localStorage.getItem("cp_name") || "Patient",
-  status: status,
-  score: score,
-  trend: trend
-};
-
-// replace existing patient (prevents duplicates)
-let index = patients.findIndex(p => p.name === newPatient.name);
-
-if(index >= 0){
-  patients[index] = newPatient;
-}else{
-  patients.push(newPatient);
-}
-
-localStorage.setItem("cp_demo_patients", JSON.stringify(patients));
-
-// ----- REDIRECT -----
-window.location.href = "careteam.html";
-
-}
-
 </script>
 
 </body>
