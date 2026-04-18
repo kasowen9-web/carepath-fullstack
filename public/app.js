@@ -71,7 +71,7 @@ function nextStep() {
 }
 
 function finish() {
-  alert("CarePath Started!");
+  window.location.href = "patient.html";
 }
 
 renderStep();
