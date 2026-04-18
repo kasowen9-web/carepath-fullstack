@@ -350,3 +350,17 @@ byId("enroll-form").addEventListener("submit", async e => {
 });
 
 refresh();
+function nextStep() {
+  const name = document.getElementById("fullName").value;
+  const phone = document.getElementById("phone").value;
+
+  if (!name || !phone) {
+    alert("Please complete all fields");
+    return;
+  }
+
+  localStorage.setItem("userName", name);
+  localStorage.setItem("userPhone", phone);
+
+  alert("Saved! Moving to next step...");
+}
