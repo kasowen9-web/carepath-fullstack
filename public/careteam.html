@@ -51,6 +51,27 @@
       margin-bottom: 4px;
     }
 
+    .chart-wrap {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+    }
+
+    .chart-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 100%;
+      display: block;
+    }
+
     .patient-table {
       width: 100%;
       border-collapse: collapse;
@@ -294,6 +315,11 @@
         <button type="button" onclick="loadDemoPatients()">Load Demo Patients</button>
         <button type="button" class="secondary-btn" onclick="clearDemoPatients()">Clear Demo Patients</button>
       </div>
+
+      <div class="chart-wrap">
+        <div class="chart-title">Execution Score Trend</div>
+        <canvas id="teamTrendChart" width="900" height="220"></canvas>
+      </div>
     </div>
 
     <div class="team-card">
@@ -459,8 +485,12 @@
       return order[status] ?? 3;
     }
 
+    function getTrendHistory() {
+      return JSON.parse(localStorage.getItem("cp_score_history") || "[]");
+    }
+
     function getTrendDirection() {
-      const history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
+      const history = getTrendHistory();
 
       if (history.length < 2) return "→ Stable";
 
@@ -470,6 +500,70 @@
       if (last > prev) return "↑ Improving";
       if (last < prev) return "↓ Declining";
       return "→ Stable";
+    }
+
+    function drawTrendChart(canvasId, history) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, w, h);
+
+      const padding = 28;
+      const chartW = w - padding * 2;
+      const chartH = h - padding * 2;
+
+      ctx.strokeStyle = "#e5e7eb";
+      ctx.lineWidth = 1;
+
+      for (let i = 0; i <= 4; i++) {
+        const y = padding + (chartH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(w - padding, y);
+        ctx.stroke();
+      }
+
+      if (!history.length) {
+        ctx.fillStyle = "#6b7280";
+        ctx.font = "14px Arial";
+        ctx.fillText("No score history yet", padding, h / 2);
+        return;
+      }
+
+      const values = history.slice(-8).map(item => Number(item.score));
+      const minVal = 0;
+      const maxVal = 100;
+
+      const points = values.map((value, index) => {
+        const x = padding + (values.length === 1 ? chartW / 2 : (chartW / (values.length - 1)) * index);
+        const y = padding + chartH - ((value - minVal) / (maxVal - minVal)) * chartH;
+        return { x, y, value };
+      });
+
+      ctx.strokeStyle = "#2563eb";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      points.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+
+      points.forEach((p) => {
+        ctx.fillStyle = "#2563eb";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#374151";
+        ctx.font = "12px Arial";
+        ctx.fillText(String(p.value), p.x - 8, p.y - 10);
+      });
     }
 
     function getRecommendation(patient) {
@@ -753,6 +847,7 @@
       renderPatientTable();
       selectedPatientIndex = null;
       renderPatientSelector();
+      drawTrendChart("teamTrendChart", getTrendHistory());
     }
 
     function loadDemoPatients() {
