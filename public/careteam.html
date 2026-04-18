@@ -325,6 +325,7 @@
             <th>Program</th>
             <th>Status</th>
             <th>ERS</th>
+            <th>Trend</th>
             <th>Latest Weight</th>
             <th>Medications</th>
             <th>Support</th>
@@ -381,6 +382,7 @@
           condition: checkin.condition || patientCondition,
           status: checkin.status || "green",
           score: checkin.score ?? "-",
+          trend: getTrendDirection(),
           weight: checkin.weightToday || "—",
           meds: checkin.medsToday || "—",
           support: patientSupport,
@@ -427,6 +429,19 @@
     function statusOrder(status) {
       const order = { red: 0, yellow: 1, green: 2 };
       return order[status] ?? 3;
+    }
+
+    function getTrendDirection() {
+      const history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
+
+      if (history.length < 2) return "→ Stable";
+
+      const last = history[history.length - 1].score;
+      const prev = history[history.length - 2].score;
+
+      if (last > prev) return "↑ Improving";
+      if (last < prev) return "↓ Declining";
+      return "→ Stable";
     }
 
     function getRecommendation(patient) {
@@ -508,7 +523,7 @@
           <span class="${statusClass(patient.status)}">${patient.status}</span>
           <div class="escalation-text">${getEscalationText(patient.status)}</div>
           <div style="margin-top: 8px;" class="muted-text">
-            ${patient.condition} • ERS: ${patient.score} • Weight: ${patient.weight} • Meds: ${patient.meds}
+            ${patient.condition} • ERS: ${patient.score} • ${patient.trend} • Weight: ${patient.weight} • Meds: ${patient.meds}
           </div>
           ${lastAction ? `<div class="escalation-text">Latest action: ${lastAction.action}</div>` : ``}
         `;
@@ -540,6 +555,7 @@
             <div class="escalation-text">${getEscalationText(patient.status)}</div>
           </td>
           <td>${patient.score}</td>
+          <td>${patient.trend || "→ Stable"}</td>
           <td>${patient.weight}</td>
           <td>${patient.meds}</td>
           <td>${patient.support}</td>
@@ -567,7 +583,7 @@
         btn.className = "patient-select-btn" + (selectedPatientIndex === index ? " active" : "");
         btn.innerHTML = `
           ${patient.name}<br>
-          <span class="muted-text">${patient.condition} • ${patient.status.toUpperCase()} • ERS ${patient.score}</span>
+          <span class="muted-text">${patient.condition} • ${patient.status.toUpperCase()} • ERS ${patient.score} • ${patient.trend || "→ Stable"}</span>
         `;
         btn.onclick = () => {
           selectedPatientIndex = index;
@@ -635,7 +651,7 @@
 
       info.innerHTML = `
         <strong>${patient.name}</strong><br>
-        <span class="muted-text">${patient.condition} • ${patient.status.toUpperCase()} • ERS ${patient.score}</span>
+        <span class="muted-text">${patient.condition} • ${patient.status.toUpperCase()} • ERS ${patient.score} • ${patient.trend || "→ Stable"}</span>
       `;
 
       const recommendation = getRecommendation(patient);
@@ -688,6 +704,7 @@
           condition: patientCondition || "CHF",
           status: localStorage.getItem("carepath_status") || "green",
           score: Number(localStorage.getItem("carepath_score")) || 92,
+          trend: getTrendDirection(),
           weight: localStorage.getItem("carepath_weight") || "178",
           meds: localStorage.getItem("carepath_meds") || "Yes",
           support: patientSupport || "Yes",
@@ -698,6 +715,7 @@
           condition: "CHF",
           status: "red",
           score: 42,
+          trend: "↓ Declining",
           weight: "211",
           meds: "No",
           support: "No",
@@ -708,6 +726,7 @@
           condition: "Diabetes",
           status: "yellow",
           score: 74,
+          trend: "↓ Declining",
           weight: "196",
           meds: "Not sure",
           support: "Yes",
@@ -718,6 +737,7 @@
           condition: "Post-Surgery",
           status: "green",
           score: 96,
+          trend: "↑ Improving",
           weight: "154",
           meds: "Yes",
           support: "Yes",
@@ -728,6 +748,7 @@
           condition: "CHF",
           status: "yellow",
           score: 68,
+          trend: "→ Stable",
           weight: "203",
           meds: "Yes",
           support: "No",
