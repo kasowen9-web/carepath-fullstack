@@ -1,305 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CarePath Daily Check-In</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    .checkin-page {
-      width: 100%;
-      max-width: 760px;
-      margin: 40px auto;
-      padding: 0 16px 40px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Check-In</title>
 
-    .checkin-hero,
-    .checkin-card,
-    .success-card {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-    }
+<style>
+body { font-family: Arial; background:#f3f4f6; margin:0; }
+.container { max-width:600px; margin:auto; padding:20px; }
 
-    .checkin-hero h1,
-    .checkin-card h2,
-    .success-card h2 {
-      margin-top: 0;
-      margin-bottom: 10px;
-    }
+.card {
+  background:white;
+  padding:20px;
+  border-radius:12px;
+}
 
-    .muted-text {
-      color: #6b7280;
-    }
-
-    .field-group {
-      margin-top: 18px;
-    }
-
-    .field-group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #111827;
-    }
-
-    .field-group input,
-    .field-group textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      font-size: 16px;
-      box-sizing: border-box;
-      background: #fff;
-    }
-
-    .field-group textarea {
-      min-height: 100px;
-      resize: vertical;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 24px;
-    }
-
-    .secondary-btn {
-      background: #e5e7eb;
-      color: #111827;
-    }
-
-    .pill-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
-
-    .pill-option {
-      border: 1px solid #d1d5db;
-      border-radius: 999px;
-      padding: 10px 16px;
-      background: #fff;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .pill-option.selected {
-      background: #2563eb;
-      color: white;
-      border-color: #2563eb;
-    }
-
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin-top: 16px;
-    }
-
-    .summary-item {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 14px;
-    }
-
-    .summary-item strong {
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    .hidden {
-      display: none;
-    }
-  </style>
+button {
+  margin-top:15px;
+  padding:10px;
+  width:100%;
+}
+</style>
 </head>
+
 <body>
-  <div class="checkin-page">
-    <div class="checkin-hero">
-      <h1>Today’s Check-In</h1>
-      <p class="muted-text">
-        Complete today’s guided check-in so your care team can stay aligned to your progress.
-      </p>
 
-      <div class="summary-grid">
-        <div class="summary-item">
-          <strong>Patient</strong>
-          <span id="summaryName">Patient</span>
-        </div>
-        <div class="summary-item">
-          <strong>Program</strong>
-          <span id="summaryCondition">Not provided</span>
-        </div>
-        <div class="summary-item">
-          <strong>Discharge Date</strong>
-          <span id="summaryDate">Not provided</span>
-        </div>
-      </div>
-    </div>
+<div class="container">
+<div class="card">
 
-    <div class="checkin-card" id="checkinFormCard">
-      <h2>Daily Check-In Questions</h2>
-      <p class="muted-text">Answer a few quick questions to help keep your care on track.</p>
+<h2>Daily Check-In</h2>
 
-      <div class="field-group">
-        <label for="weightToday">Weight today</label>
-        <input type="number" id="weightToday" placeholder="Enter today’s weight">
-      </div>
+<label>Weight today</label>
+<input id="weight" type="number" style="width:100%; padding:8px;">
 
-      <div class="field-group">
-        <label>Did you take your medications today?</label>
-        <div class="pill-row" id="medsRow">
-          <button type="button" class="pill-option" onclick="selectPill('meds', 'Yes', this)">Yes</button>
-          <button type="button" class="pill-option" onclick="selectPill('meds', 'No', this)">No</button>
-          <button type="button" class="pill-option" onclick="selectPill('meds', 'Not sure', this)">Not sure</button>
-        </div>
-      </div>
+<label>Did you take meds?</label>
+<select id="meds" style="width:100%; padding:8px;">
+<option>Yes</option>
+<option>No</option>
+<option>Not sure</option>
+</select>
 
-      <div class="field-group">
-        <label>Shortness of breath today</label>
-        <div class="pill-row" id="breathRow">
-          <button type="button" class="pill-option" onclick="selectPill('breath', 'None', this)">None</button>
-          <button type="button" class="pill-option" onclick="selectPill('breath', 'Mild', this)">Mild</button>
-          <button type="button" class="pill-option" onclick="selectPill('breath', 'Moderate', this)">Moderate</button>
-          <button type="button" class="pill-option" onclick="selectPill('breath', 'Severe', this)">Severe</button>
-        </div>
-      </div>
+<label>Shortness of breath</label>
+<select id="breath" style="width:100%; padding:8px;">
+<option>No</option>
+<option>Mild</option>
+<option>Severe</option>
+</select>
 
-      <div class="field-group">
-        <label>Swelling today</label>
-        <div class="pill-row" id="swellingRow">
-          <button type="button" class="pill-option" onclick="selectPill('swelling', 'None', this)">None</button>
-          <button type="button" class="pill-option" onclick="selectPill('swelling', 'Mild', this)">Mild</button>
-          <button type="button" class="pill-option" onclick="selectPill('swelling', 'Moderate', this)">Moderate</button>
-          <button type="button" class="pill-option" onclick="selectPill('swelling', 'Severe', this)">Severe</button>
-        </div>
-      </div>
+<label>Swelling</label>
+<select id="swelling" style="width:100%; padding:8px;">
+<option>No</option>
+<option>Mild</option>
+<option>Severe</option>
+</select>
 
-      <div class="field-group">
-        <label for="notesToday">Anything you want your care team to know today?</label>
-        <textarea id="notesToday" placeholder="Optional notes"></textarea>
-      </div>
+<button onclick="submitCheckin()">Submit</button>
 
-      <div class="button-row">
-        <button type="button" class="secondary-btn" onclick="goToPatientHome()">Back</button>
-        <button type="button" onclick="submitCheckIn()">Submit Check-In</button>
-      </div>
-    </div>
+</div>
+</div>
 
-    <div class="success-card hidden" id="successCard">
-      <h2>Check-In Submitted</h2>
-      <p class="muted-text">
-        Your responses have been recorded for today.
-      </p>
-      <p>
-        <strong>Your responses guide your care team, so they can step in when support is needed.</strong>
-      </p>
+<script>
 
-      <div class="button-row">
-        <button type="button" onclick="goToPatientHome()">Return to CarePath Home</button>
-      </div>
-    </div>
-  </div>
+function submitCheckin(){
 
-  <script>
-    let checkinAnswers = {
-      meds: "",
-      breath: "",
-      swelling: ""
-    };
+let weight = document.getElementById("weight").value;
+let meds = document.getElementById("meds").value;
+let breath = document.getElementById("breath").value;
+let swelling = document.getElementById("swelling").value;
 
-    const savedName = localStorage.getItem("cp_name");
-    const savedCondition = localStorage.getItem("cp_condition");
-    const savedDate = localStorage.getItem("cp_date");
+// ----- SCORE LOGIC -----
+let score = 100;
 
-    if (savedName) {
-      document.getElementById("summaryName").textContent = savedName;
-    }
+if(meds === "No") score -= 30;
+if(breath === "Severe") score -= 30;
+if(swelling === "Severe") score -= 20;
+if(weight && weight > 200) score -= 10;
 
-    if (savedCondition) {
-      document.getElementById("summaryCondition").textContent = savedCondition;
-    }
+// ----- STATUS -----
+let status = "green";
+if(score < 80) status = "yellow";
+if(score < 60) status = "red";
 
-    if (savedDate) {
-      document.getElementById("summaryDate").textContent = savedDate;
-    }
+// ----- SAVE CHECK-IN -----
+const data = {
+  weightToday: weight,
+  medsToday: meds,
+  shortnessOfBreath: breath,
+  swellingToday: swelling,
+  score: score,
+  status: status,
+  submittedAt: new Date().toISOString()
+};
 
-    function selectPill(group, value, buttonEl) {
-      checkinAnswers[group] = value;
+localStorage.setItem("cp_last_checkin", JSON.stringify(data));
 
-      const rowMap = {
-        meds: "medsRow",
-        breath: "breathRow",
-        swelling: "swellingRow"
-      };
+// ----- SAVE HISTORY -----
+let history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
 
-      const row = document.getElementById(rowMap[group]);
-      if (!row) return;
+history.push({
+  score: score,
+  time: new Date().toISOString()
+});
 
-      row.querySelectorAll(".pill-option").forEach(btn => btn.classList.remove("selected"));
-      buttonEl.classList.add("selected");
-    }
+localStorage.setItem("cp_score_history", JSON.stringify(history));
 
-    function submitCheckIn() {
-      const weight = document.getElementById("weightToday").value.trim();
-      const notes = document.getElementById("notesToday").value.trim();
+// ----- ADD TO DASHBOARD PATIENTS -----
+let patients = JSON.parse(localStorage.getItem("cp_demo_patients") || "[]");
 
-      let score = 100;
+const newPatient = {
+  name: localStorage.getItem("cp_name") || "Patient",
+  status: status,
+  score: score,
+  trend: "→ Stable"
+};
 
-      if (checkinAnswers.meds === "No") score -= 30;
-      if (checkinAnswers.meds === "Not sure") score -= 15;
-      if (checkinAnswers.breath === "Moderate") score -= 20;
-      if (checkinAnswers.breath === "Severe") score -= 40;
-      if (checkinAnswers.swelling === "Moderate") score -= 20;
-      if (checkinAnswers.swelling === "Severe") score -= 40;
-      if (weight && Number(weight) > 200) score -= 10;
+patients.push(newPatient);
 
-      if (score < 0) score = 0;
+localStorage.setItem("cp_demo_patients", JSON.stringify(patients));
 
-      let status = "green";
-      if (score < 80) status = "yellow";
-      if (score < 50) status = "red";
+// ----- GO BACK TO DASHBOARD -----
+window.location.href = "careteam.html";
 
-      const payload = {
-        name: localStorage.getItem("cp_name") || "",
-        condition: localStorage.getItem("cp_condition") || "",
-        dischargeDate: localStorage.getItem("cp_date") || "",
-        weightToday: weight,
-        medsToday: checkinAnswers.meds,
-        shortnessOfBreath: checkinAnswers.breath,
-        swellingToday: checkinAnswers.swelling,
-        notesToday: notes,
-        score: score,
-        status: status,
-        submittedAt: new Date().toISOString()
-      };
+}
 
-      let history = JSON.parse(localStorage.getItem("cp_score_history") || "[]");
-      history.push({
-        score: score,
-        time: new Date().toISOString()
-      });
+</script>
 
-      localStorage.setItem("cp_score_history", JSON.stringify(history));
-      localStorage.setItem("cp_last_checkin", JSON.stringify(payload));
-      localStorage.setItem("carepath_score", score);
-      localStorage.setItem("carepath_status", status);
-      localStorage.setItem("carepath_weight", weight);
-      localStorage.setItem("carepath_meds", checkinAnswers.meds);
-
-      document.getElementById("checkinFormCard").classList.add("hidden");
-      document.getElementById("successCard").classList.remove("hidden");
-    }
-
-    function goToPatientHome() {
-      window.location.href = "patient.html";
-    }
-  </script>
 </body>
 </html>
