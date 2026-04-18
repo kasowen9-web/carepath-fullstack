@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarePath Notifications</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 16px 40px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+
+    h1, h2 {
+      margin-top: 0;
+    }
+
+    .muted {
+      color: #6b7280;
+    }
+
+    .notification-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .notification-item {
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+
+    .notif-red {
+      border-left: 6px solid #ef4444;
+    }
+
+    .notif-yellow {
+      border-left: 6px solid #f59e0b;
+    }
+
+    .notif-green {
+      border-left: 6px solid #10b981;
+    }
+
+    .notif-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .notif-time {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 8px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    button {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .primary-btn {
+      background: #2563eb;
+      color: white;
+    }
+
+    .secondary-btn {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .empty-box {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="card">
+      <h1>Notification Inbox</h1>
+      <p class="muted">
+        Persistent alert feed for command-center review and follow-up.
+      </p>
+
+      <div class="button-row">
+        <button class="primary-btn" onclick="goDashboard()">Back to Dashboard</button>
+        <button class="secondary-btn" onclick="clearNotifications()">Clear Notifications</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Alerts</h2>
+      <div id="notificationList" class="notification-list"></div>
+      <div id="emptyState" class="empty-box" style="display:none;">
+        No notifications available.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let alertFeed = JSON.parse(localStorage.getItem("cp_alert_feed") || "[]");
+
+    function renderNotifications() {
+      const list = document.getElementById("notificationList");
+      const emptyState = document.getElementById("emptyState");
+
+      list.innerHTML = "";
+
+      if (!alertFeed.length) {
+        emptyState.style.display = "block";
+        return;
+      }
+
+      emptyState.style.display = "none";
+
+      alertFeed.forEach(alert => {
+        const item = document.createElement("div");
+        item.className = "notification-item " + (
+          alert.level === "red"
+            ? "notif-red"
+            : alert.level === "yellow"
+            ? "notif-yellow"
+            : "notif-green"
+        );
+
+        item.innerHTML = `
+          <div class="notif-title">${alert.text}</div>
+          <div class="muted">Level: ${alert.level.toUpperCase()}</div>
+          <div class="notif-time">${alert.time}</div>
+        `;
+
+        list.appendChild(item);
+      });
+    }
+
+    function clearNotifications() {
+      localStorage.removeItem("cp_alert_feed");
+      alertFeed = [];
+      renderNotifications();
+    }
+
+    function goDashboard() {
+      window.location.href = "careteam.html";
+    }
+
+    renderNotifications();
+  </script>
+</body>
+</html>
