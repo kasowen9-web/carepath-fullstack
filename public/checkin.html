@@ -1,80 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CarePath Check-In</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-
-<body>
-
-<div class="container">
-
-  <h1>Today’s Check-In</h1>
-  <p>Complete today’s guided check-in so your care team can stay aligned to your progress.</p>
-
-  <div class="card-row">
-    <div class="card">
-      <strong>Patient</strong><br>
-      Katherine Owen
-    </div>
-
-    <div class="card">
-      <strong>Program</strong><br>
-      CHF
-    </div>
-
-    <div class="card">
-      <strong>Discharge Date</strong><br>
-      Not provided
-    </div>
-  </div>
-
-  <h2>Daily Check-In Questions</h2>
-
-  <label>Weight today</label>
-  <input id="weight" type="number" placeholder="Enter today’s weight">
-
-  <label>Did you take your medications today?</label>
-  <select id="meds">
-    <option value="">Select</option>
-    <option value="yes">Yes</option>
-    <option value="no">No</option>
-  </select>
-
-  <button onclick="submitCheckIn()" class="primary-btn">
-    Submit Check-In
-  </button>
-
-</div>
-
 <script>
 function submitCheckIn() {
 
   const weight = document.getElementById("weight").value;
   const meds = document.getElementById("meds").value;
 
+  let score = 100;
+
+  if (meds === "no") score -= 30;
+  if (weight && Number(weight) > 200) score -= 30;
+
   let status = "green";
+  if (score < 80) status = "yellow";
+  if (score < 50) status = "red";
 
-  // Simple signal logic
-  if (weight && Number(weight) > 200) {
-    status = "red";
-  }
-
-  if (meds === "no") {
-    status = "yellow";
-  }
-
-  // Store data (simulates backend)
+  localStorage.setItem("carepath_score", score);
+  localStorage.setItem("carepath_status", status);
   localStorage.setItem("carepath_weight", weight);
   localStorage.setItem("carepath_meds", meds);
-  localStorage.setItem("carepath_status", status);
 
-  // Move back to dashboard
   window.location.href = "patient.html";
 }
 </script>
-
-</body>
-</html>
