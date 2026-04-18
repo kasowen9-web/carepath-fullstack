@@ -1,1054 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CarePath Care Team View</title>
-  <link rel="stylesheet" href="styles.css">
-  <style>
-    .team-page {
-      width: 100%;
-      max-width: 1180px;
-      margin: 40px auto;
-      padding: 0 16px 40px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Care Team Dashboard</title>
 
-    .team-hero,
-    .team-card {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      margin-bottom: 20px;
-    }
+<style>
+body { font-family: Arial; background:#f3f4f6; margin:0; }
 
-    .team-hero h1,
-    .team-card h2 {
-      margin-top: 0;
-      margin-bottom: 10px;
-    }
+.container { max-width:1100px; margin:auto; padding:20px; }
 
-    .muted-text {
-      color: #6b7280;
-    }
+.card {
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:20px;
+}
 
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin-top: 16px;
-    }
+.grid {
+  display:grid;
+  grid-template-columns: repeat(4,1fr);
+  gap:12px;
+}
 
-    .summary-item {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 14px;
-    }
+.metric {
+  padding:15px;
+  border-radius:10px;
+  background:#f9fafb;
+}
 
-    .summary-item strong {
-      display: block;
-      margin-bottom: 4px;
-    }
+.metric h3 { margin:0; font-size:12px; color:#6b7280; }
+.metric p { margin:5px 0 0; font-size:22px; font-weight:bold; }
 
-    .coordinator-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin-top: 16px;
-    }
+.red { background:#fee2e2; }
+.yellow { background:#fef3c7; }
+.green { background:#dcfce7; }
+.blue { background:#e0f2fe; }
 
-    .coordinator-card {
-      border-radius: 14px;
-      padding: 16px;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
-    }
+table {
+  width:100%;
+  border-collapse:collapse;
+}
 
-    .coordinator-card .label {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: #6b7280;
-      margin-bottom: 8px;
-    }
+th, td {
+  padding:10px;
+  border-bottom:1px solid #e5e7eb;
+}
 
-    .coordinator-card .value {
-      font-size: 28px;
-      font-weight: 700;
-      line-height: 1;
-      margin-bottom: 6px;
-    }
+.status {
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:12px;
+}
 
-    .coordinator-card .desc {
-      font-size: 13px;
-      color: #6b7280;
-      line-height: 1.4;
-    }
+.status-green { background:#dcfce7; }
+.status-yellow { background:#fef3c7; }
+.status-red { background:#fee2e2; }
 
-    .coordinator-red {
-      background: #fef2f2;
-      border-color: #fecaca;
-    }
+.alert {
+  padding:10px;
+  border-radius:8px;
+  margin-top:10px;
+  font-weight:bold;
+}
 
-    .coordinator-yellow {
-      background: #fffbeb;
-      border-color: #fde68a;
-    }
-
-    .coordinator-green {
-      background: #f0fdf4;
-      border-color: #bbf7d0;
-    }
-
-    .coordinator-blue {
-      background: #eff6ff;
-      border-color: #bfdbfe;
-    }
-
-    .chart-wrap {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 12px;
-      background: #ffffff;
-      border: 1px solid #e5e7eb;
-    }
-
-    .chart-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: #374151;
-      margin-bottom: 8px;
-    }
-
-    canvas {
-      width: 100%;
-      max-width: 100%;
-      display: block;
-    }
-
-    .patient-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 16px;
-    }
-
-    .patient-table th,
-    .patient-table td {
-      text-align: left;
-      padding: 14px 12px;
-      border-bottom: 1px solid #e5e7eb;
-      vertical-align: top;
-    }
-
-    .patient-table th {
-      color: #6b7280;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    .status-pill {
-      display: inline-block;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: capitalize;
-    }
-
-    .status-green {
-      background: #dcfce7;
-      color: #166534;
-    }
-
-    .status-yellow {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    .status-red {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .button-row {
-      display: flex;
-      gap: 12px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
-
-    .secondary-btn {
-      background: #e5e7eb;
-      color: #111827;
-    }
-
-    .priority-box {
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 14px;
-      margin-top: 12px;
-      background: #f9fafb;
-    }
-
-    .empty-note {
-      margin-top: 16px;
-      padding: 16px;
-      border-radius: 12px;
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      color: #1d4ed8;
-    }
-
-    .escalation-text {
-      margin-top: 6px;
-      font-size: 13px;
-      color: #6b7280;
-      line-height: 1.35;
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-top: 16px;
-    }
-
-    .action-grid {
-      display: grid;
-      grid-template-columns: 1.05fr 1fr;
-      gap: 20px;
-    }
-
-    .action-panel {
-      border: 1px solid #e5e7eb;
-      border-radius: 14px;
-      padding: 18px;
-      background: #fafafa;
-    }
-
-    .action-panel h3 {
-      margin-top: 0;
-      margin-bottom: 10px;
-    }
-
-    .patient-list-buttons {
-      display: grid;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .patient-select-btn {
-      text-align: left;
-      padding: 12px 14px;
-      border: 1px solid #d1d5db;
-      border-radius: 12px;
-      background: white;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .patient-select-btn.active {
-      border-color: #2563eb;
-      background: #eff6ff;
-    }
-
-    .recommendation-box,
-    .history-box {
-      margin-top: 16px;
-      padding: 14px;
-      border-radius: 12px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-    }
-
-    .recommendation-box strong,
-    .history-box strong {
-      display: block;
-      margin-bottom: 6px;
-    }
-
-    .action-steps {
-      margin-top: 12px;
-      padding-left: 18px;
-    }
-
-    .action-steps li {
-      margin-bottom: 8px;
-    }
-
-    .action-buttons {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-      margin-top: 16px;
-    }
-
-    .history-list {
-      margin: 12px 0 0;
-      padding-left: 18px;
-    }
-
-    .history-list li {
-      margin-bottom: 8px;
-    }
-
-    .small-label {
-      font-size: 12px;
-      color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      margin-top: 14px;
-    }
-
-    .alert-banner {
-      margin-top: 16px;
-      padding: 14px 16px;
-      border-radius: 12px;
-      font-weight: 700;
-      line-height: 1.4;
-    }
-
-    .alert-red {
-      background: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #fecaca;
-    }
-
-    .alert-yellow {
-      background: #fef3c7;
-      color: #92400e;
-      border: 1px solid #fde68a;
-    }
-
-    .alert-green {
-      background: #dcfce7;
-      color: #166534;
-      border: 1px solid #bbf7d0;
-    }
-
-    @media (max-width: 900px) {
-      .action-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .action-buttons {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+</style>
 </head>
+
 <body>
-  <div class="team-page">
-    <div class="team-hero">
-      <h1>Care Team View</h1>
-      <p class="muted-text">
-        Prioritize patients based on today’s execution signals and latest responses.
-      </p>
 
-      <div class="summary-grid">
-        <div class="summary-item">
-          <strong>Total Patients</strong>
-          <span id="totalPatients">0</span>
-        </div>
-        <div class="summary-item">
-          <strong>Green</strong>
-          <span id="greenCount">0</span>
-        </div>
-        <div class="summary-item">
-          <strong>Yellow</strong>
-          <span id="yellowCount">0</span>
-        </div>
-        <div class="summary-item">
-          <strong>Red</strong>
-          <span id="redCount">0</span>
-        </div>
-      </div>
+<div class="container">
+
+<h1>Care Team Dashboard</h1>
+
+<!-- COORDINATOR SUMMARY -->
+<div class="card">
+<h2>Coordinator Summary</h2>
+<div class="grid">
+
+<div class="metric red">
+<h3>Needs Action</h3>
+<p id="needsAction">0</p>
+</div>
+
+<div class="metric yellow">
+<h3>Escalated Today</h3>
+<p id="escalated">0</p>
+</div>
+
+<div class="metric green">
+<h3>Improving</h3>
+<p id="improving">0</p>
+</div>
+
+<div class="metric blue">
+<h3>Declining</h3>
+<p id="declining">0</p>
+</div>
+
+</div>
+</div>
+
+<!-- PILOT METRICS -->
+<div class="card">
+<h2>Pilot Metrics</h2>
+
+<div class="grid">
+
+<div class="metric blue">
+<h3>Check-ins Today</h3>
+<p id="checkins">0</p>
+</div>
+
+<div class="metric green">
+<h3>Adherence</h3>
+<p id="adherence">0%</p>
+</div>
+
+<div class="metric">
+<h3>Average ERS</h3>
+<p id="avg">0</p>
+</div>
+
+<div class="metric red">
+<h3>High Risk</h3>
+<p id="risk">0</p>
+</div>
+
+</div>
+</div>
+
+<!-- PATIENT TABLE -->
+<div class="card">
+<h2>Patients</h2>
+
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Status</th>
+<th>ERS</th>
+<th>Trend</th>
+</tr>
+</thead>
+<tbody id="table"></tbody>
+</table>
+
+</div>
+
+</div>
+
+<script>
+
+let patients = [
+ {name:"Maria", status:"red", score:40, trend:"↓ Declining"},
+ {name:"James", status:"yellow", score:70, trend:"↓ Declining"},
+ {name:"Linda", status:"green", score:95, trend:"↑ Improving"},
+ {name:"Robert", status:"yellow", score:65, trend:"→ Stable"}
+];
+
+// ---------- RENDER TABLE ----------
+function renderTable(){
+ let html="";
+ patients.forEach(p=>{
+   html += `
+   <tr>
+   <td>${p.name}</td>
+   <td><span class="status status-${p.status}">${p.status}</span></td>
+   <td>${p.score}</td>
+   <td>${p.trend}</td>
+   </tr>
+   `;
+ });
+ document.getElementById("table").innerHTML = html;
+}
+
+// ---------- METRICS ----------
+function renderMetrics(){
+
+ let needsAction = patients.filter(p=>p.status!=="green").length;
+ let improving = patients.filter(p=>p.trend.includes("↑")).length;
+ let declining = patients.filter(p=>p.trend.includes("↓")).length;
+ let highRisk = patients.filter(p=>p.status==="red").length;
+
+ let avg = Math.round(
+   patients.reduce((sum,p)=>sum+p.score,0)/patients.length
+ );
+
+ let adherence = Math.round(
+   (patients.filter(p=>p.score>=80).length / patients.length)*100
+ );
+
+ document.getElementById("needsAction").innerText = needsAction;
+ document.getElementById("improving").innerText = improving;
+ document.getElementById("declining").innerText = declining;
+ document.getElementById("risk").innerText = highRisk;
+ document.getElementById("avg").innerText = avg;
+ document.getElementById("adherence").innerText = adherence+"%";
+
+}
+
+// ---------- INIT ----------
+renderTable();
+renderMetrics();
+
+</script>
 
-      <div class="toolbar">
-        <button type="button" onclick="loadDemoPatients()">Load Demo Patients</button>
-        <button type="button" class="secondary-btn" onclick="clearDemoPatients()">Clear Demo Patients</button>
-      </div>
-
-      <div class="chart-wrap">
-        <div class="chart-title">Execution Score Trend</div>
-        <canvas id="teamTrendChart" width="900" height="220"></canvas>
-      </div>
-    </div>
-
-    <div class="team-card">
-      <h2>Coordinator Summary</h2>
-      <p class="muted-text">
-        Daily operational snapshot for rapid prioritization.
-      </p>
-
-      <div class="coordinator-grid">
-        <div class="coordinator-card coordinator-red">
-          <div class="label">Needs Action Now</div>
-          <div class="value" id="needsActionNow">0</div>
-          <div class="desc">Yellow/red patients with active attention needs.</div>
-        </div>
-
-        <div class="coordinator-card coordinator-yellow">
-          <div class="label">Escalated Today</div>
-          <div class="value" id="escalatedToday">0</div>
-          <div class="desc">Documented escalations to provider today.</div>
-        </div>
-
-        <div class="coordinator-card coordinator-green">
-          <div class="label">Improving Today</div>
-          <div class="value" id="improvingToday">0</div>
-          <div class="desc">Patients trending upward in execution reliability.</div>
-        </div>
-
-        <div class="coordinator-card coordinator-blue">
-          <div class="label">Declining Today</div>
-          <div class="value" id="decliningToday">0</div>
-          <div class="desc">Patients trending downward and needing closer review.</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="team-card">
-      <h2>Priority Queue</h2>
-      <p class="muted-text">
-        Patients needing the fastest attention should rise to the top.
-      </p>
-      <div id="priorityQueue"></div>
-    </div>
-
-    <div class="team-card">
-      <h2>Nurse Action Panel</h2>
-      <p class="muted-text">
-        Select a patient to view the recommended next step and document action taken.
-      </p>
-
-      <div class="action-grid">
-        <div class="action-panel">
-          <h3>Patients</h3>
-          <div id="patientSelectList" class="patient-list-buttons"></div>
-        </div>
-
-        <div class="action-panel">
-          <h3>Recommended Action</h3>
-          <div id="selectedPatientInfo" class="muted-text">Select a patient to view details.</div>
-
-          <div id="autoEscalationBanner" class="alert-banner alert-green" style="display:none;"></div>
-
-          <div id="recommendationBox" class="recommendation-box" style="display:none;">
-            <strong id="recommendationTitle">Recommended Action</strong>
-            <div id="recommendationText" class="muted-text"></div>
-            <ul id="recommendationSteps" class="action-steps"></ul>
-
-            <div class="small-label">Document action taken</div>
-            <div class="action-buttons">
-              <button type="button" onclick="logAction('Called patient')">Called patient</button>
-              <button type="button" onclick="logAction('Sent message')">Sent message</button>
-              <button type="button" onclick="logAction('Escalated to provider')">Escalated to provider</button>
-              <button type="button" class="secondary-btn" onclick="logAction('Monitoring only')">Monitoring only</button>
-            </div>
-          </div>
-
-          <div id="historyBox" class="history-box" style="display:none;">
-            <strong>Outreach History</strong>
-            <ul id="historyList" class="history-list"></ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="team-card">
-      <h2>Patient List</h2>
-      <table class="patient-table">
-        <thead>
-          <tr>
-            <th>Patient</th>
-            <th>Program</th>
-            <th>Status</th>
-            <th>ERS</th>
-            <th>Trend</th>
-            <th>Latest Weight</th>
-            <th>Medications</th>
-            <th>Support</th>
-            <th>Last Updated</th>
-          </tr>
-        </thead>
-        <tbody id="patientTableBody"></tbody>
-      </table>
-
-      <div id="noDataMessage" class="empty-note" style="display:none;">
-        No patient signals yet. Load demo patients or complete a daily check-in to populate this view.
-      </div>
-
-      <div class="button-row">
-        <button type="button" onclick="goToPatientHome()">Open Patient Home</button>
-        <button type="button" class="secondary-btn" onclick="goToOnboarding()">Back to Onboarding</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const patientName = localStorage.getItem("cp_name") || "Patient";
-    const patientCondition = localStorage.getItem("cp_condition") || "CHF";
-    const patientSupport = localStorage.getItem("cp_support") || "Yes";
-    const lastCheckinRaw = localStorage.getItem("cp_last_checkin");
-    const demoPatientsRaw = localStorage.getItem("cp_demo_patients");
-    const actionLogRaw = localStorage.getItem("cp_action_log");
-
-    let patients = [];
-    let selectedPatientIndex = null;
-    let actionLog = {};
-
-    if (actionLogRaw) {
-      try {
-        actionLog = JSON.parse(actionLogRaw);
-      } catch (e) {
-        console.error("Could not parse action log", e);
-      }
-    }
-
-    if (demoPatientsRaw) {
-      try {
-        patients = JSON.parse(demoPatientsRaw);
-      } catch (e) {
-        console.error("Could not parse demo patients", e);
-      }
-    }
-
-    if (lastCheckinRaw) {
-      try {
-        const checkin = JSON.parse(lastCheckinRaw);
-        const livePatient = {
-          name: checkin.name || patientName,
-          condition: checkin.condition || patientCondition,
-          status: checkin.status || "green",
-          score: checkin.score ?? "-",
-          trend: getTrendDirection(),
-          weight: checkin.weightToday || "—",
-          meds: checkin.medsToday || "—",
-          support: patientSupport,
-          submittedAt: checkin.submittedAt || new Date().toISOString()
-        };
-
-        const existingIndex = patients.findIndex(
-          p => p.name === livePatient.name && p.condition === livePatient.condition
-        );
-
-        if (existingIndex >= 0) {
-          patients[existingIndex] = livePatient;
-        } else {
-          patients.push(livePatient);
-        }
-      } catch (e) {
-        console.error("Could not parse latest check-in", e);
-      }
-    }
-
-    function patientKey(patient) {
-      return `${patient.name}__${patient.condition}`;
-    }
-
-    function formatDateTime(value) {
-      if (!value || value === "—") return "—";
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return value;
-      return date.toLocaleString();
-    }
-
-    function isToday(value) {
-      if (!value) return false;
-      const d = new Date(value);
-      const now = new Date();
-      return d.getFullYear() === now.getFullYear() &&
-             d.getMonth() === now.getMonth() &&
-             d.getDate() === now.getDate();
-    }
-
-    function statusClass(status) {
-      if (status === "red") return "status-pill status-red";
-      if (status === "yellow") return "status-pill status-yellow";
-      return "status-pill status-green";
-    }
-
-    function getEscalationText(status) {
-      if (status === "red") return "Needs immediate attention";
-      if (status === "yellow") return "Monitor closely";
-      return "On track";
-    }
-
-    function statusOrder(status) {
-      const order = { red: 0, yellow: 1, green: 2 };
-      return order[status] ?? 3;
-    }
-
-    function getTrendHistory() {
-      return JSON.parse(localStorage.getItem("cp_score_history") || "[]");
-    }
-
-    function getTrendDirection() {
-      const history = getTrendHistory();
-
-      if (history.length < 2) return "→ Stable";
-
-      const last = history[history.length - 1].score;
-      const prev = history[history.length - 2].score;
-
-      if (last > prev) return "↑ Improving";
-      if (last < prev) return "↓ Declining";
-      return "→ Stable";
-    }
-
-    function drawTrendChart(canvasId, history) {
-      const canvas = document.getElementById(canvasId);
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
-      const w = canvas.width;
-      const h = canvas.height;
-
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, w, h);
-
-      const padding = 28;
-      const chartW = w - padding * 2;
-      const chartH = h - padding * 2;
-
-      ctx.strokeStyle = "#e5e7eb";
-      ctx.lineWidth = 1;
-
-      for (let i = 0; i <= 4; i++) {
-        const y = padding + (chartH / 4) * i;
-        ctx.beginPath();
-        ctx.moveTo(padding, y);
-        ctx.lineTo(w - padding, y);
-        ctx.stroke();
-      }
-
-      if (!history.length) {
-        ctx.fillStyle = "#6b7280";
-        ctx.font = "14px Arial";
-        ctx.fillText("No score history yet", padding, h / 2);
-        return;
-      }
-
-      const values = history.slice(-8).map(item => Number(item.score));
-      const minVal = 0;
-      const maxVal = 100;
-
-      const points = values.map((value, index) => {
-        const x = padding + (values.length === 1 ? chartW / 2 : (chartW / (values.length - 1)) * index);
-        const y = padding + chartH - ((value - minVal) / (maxVal - minVal)) * chartH;
-        return { x, y, value };
-      });
-
-      ctx.strokeStyle = "#2563eb";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      points.forEach((p, i) => {
-        if (i === 0) ctx.moveTo(p.x, p.y);
-        else ctx.lineTo(p.x, p.y);
-      });
-      ctx.stroke();
-
-      points.forEach((p) => {
-        ctx.fillStyle = "#2563eb";
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#374151";
-        ctx.font = "12px Arial";
-        ctx.fillText(String(p.value), p.x - 8, p.y - 10);
-      });
-    }
-
-    function getRecommendation(patient) {
-      if (patient.status === "red") {
-        return {
-          title: "Immediate Outreach Recommended",
-          text: "This patient should be contacted now based on today’s signals.",
-          steps: [
-            "Call patient immediately to assess status and verify symptoms.",
-            "Review latest medications, weight, and symptom responses.",
-            "Escalate to provider if symptoms are worsening or unresolved."
-          ]
-        };
-      }
-
-      if (patient.status === "yellow") {
-        return {
-          title: "Same-Day Review Recommended",
-          text: "This patient should be reviewed today to prevent further deviation.",
-          steps: [
-            "Review the latest check-in responses and care plan barriers.",
-            "Send same-day outreach or supportive guidance.",
-            "Reassess tomorrow and escalate if status worsens."
-          ]
-        };
-      }
-
-      return {
-        title: "Continue Monitoring",
-        text: "This patient appears on track today.",
-        steps: [
-          "Continue routine monitoring.",
-          "Reinforce guided care steps.",
-          "No escalation needed unless new signals emerge."
-        ]
-      };
-    }
-
-    function getAutoEscalationMessage(patient) {
-      if (!patient) return null;
-
-      if (patient.status === "red" && patient.trend === "↓ Declining") {
-        return {
-          className: "alert-banner alert-red",
-          text: "Auto-escalation triggered: red status with declining trend. Immediate nurse outreach and provider review recommended."
-        };
-      }
-
-      if (patient.status === "yellow" && patient.trend === "↓ Declining") {
-        return {
-          className: "alert-banner alert-yellow",
-          text: "Auto-escalation triggered: yellow status with declining trend. Same-day nurse review recommended."
-        };
-      }
-
-      return {
-        className: "alert-banner alert-green",
-        text: "No automatic escalation triggered. Continue routine monitoring."
-      };
-    }
-
-    function sortedPatients() {
-      return [...patients].sort((a, b) => {
-        const byStatus = statusOrder(a.status) - statusOrder(b.status);
-        if (byStatus !== 0) return byStatus;
-        return (a.score ?? 999) - (b.score ?? 999);
-      });
-    }
-
-    function renderSummary() {
-      const green = patients.filter(p => p.status === "green").length;
-      const yellow = patients.filter(p => p.status === "yellow").length;
-      const red = patients.filter(p => p.status === "red").length;
-
-      document.getElementById("totalPatients").textContent = patients.length;
-      document.getElementById("greenCount").textContent = green;
-      document.getElementById("yellowCount").textContent = yellow;
-      document.getElementById("redCount").textContent = red;
-    }
-
-    function renderCoordinatorSummary() {
-      const needsActionNow = patients.filter(p => p.status === "red" || p.status === "yellow").length;
-
-      let escalatedToday = 0;
-      Object.values(actionLog).forEach(history => {
-        history.forEach(item => {
-          if (item.action === "Escalated to provider" && isToday(item.time)) {
-            escalatedToday += 1;
-          }
-        });
-      });
-
-      const improvingToday = patients.filter(p => p.trend === "↑ Improving").length;
-      const decliningToday = patients.filter(p => p.trend === "↓ Declining").length;
-
-      document.getElementById("needsActionNow").textContent = needsActionNow;
-      document.getElementById("escalatedToday").textContent = escalatedToday;
-      document.getElementById("improvingToday").textContent = improvingToday;
-      document.getElementById("decliningToday").textContent = decliningToday;
-    }
-
-    function renderPriorityQueue() {
-      const queueEl = document.getElementById("priorityQueue");
-      queueEl.innerHTML = "";
-
-      if (patients.length === 0) {
-        queueEl.innerHTML = `
-          <div class="empty-note">
-            No active patient signals yet. Once a patient completes a daily check-in, they will appear here.
-          </div>
-        `;
-        return;
-      }
-
-      const sorted = sortedPatients();
-
-      sorted.forEach((patient, index) => {
-        const lastAction = getLatestAction(patient);
-        const div = document.createElement("div");
-        div.className = "priority-box";
-        div.innerHTML = `
-          <strong>${index + 1}. ${patient.name}</strong><br>
-          <span class="${statusClass(patient.status)}">${patient.status}</span>
-          <div class="escalation-text">${getEscalationText(patient.status)}</div>
-          <div style="margin-top: 8px;" class="muted-text">
-            ${patient.condition} • ERS: ${patient.score} • ${patient.trend} • Weight: ${patient.weight} • Meds: ${patient.meds}
-          </div>
-          ${lastAction ? `<div class="escalation-text">Latest action: ${lastAction.action}</div>` : ``}
-        `;
-        queueEl.appendChild(div);
-      });
-    }
-
-    function renderPatientTable() {
-      const tbody = document.getElementById("patientTableBody");
-      const noData = document.getElementById("noDataMessage");
-      tbody.innerHTML = "";
-
-      if (patients.length === 0) {
-        noData.style.display = "block";
-        return;
-      }
-
-      noData.style.display = "none";
-
-      const sorted = sortedPatients();
-
-      sorted.forEach((patient) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${patient.name}</td>
-          <td>${patient.condition}</td>
-          <td>
-            <span class="${statusClass(patient.status)}">${patient.status}</span>
-            <div class="escalation-text">${getEscalationText(patient.status)}</div>
-          </td>
-          <td>${patient.score}</td>
-          <td>${patient.trend || "→ Stable"}</td>
-          <td>${patient.weight}</td>
-          <td>${patient.meds}</td>
-          <td>${patient.support}</td>
-          <td>${formatDateTime(patient.submittedAt)}</td>
-        `;
-        tbody.appendChild(row);
-      });
-    }
-
-    function renderPatientSelector() {
-      const list = document.getElementById("patientSelectList");
-      list.innerHTML = "";
-
-      if (patients.length === 0) {
-        list.innerHTML = `<div class="empty-note">No patients available.</div>`;
-        renderRecommendation(null);
-        return;
-      }
-
-      const sorted = sortedPatients();
-
-      sorted.forEach((patient, index) => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "patient-select-btn" + (selectedPatientIndex === index ? " active" : "");
-        btn.innerHTML = `
-          ${patient.name}<br>
-          <span class="muted-text">${patient.condition} • ${patient.status.toUpperCase()} • ERS ${patient.score} • ${patient.trend || "→ Stable"}</span>
-        `;
-        btn.onclick = () => {
-          selectedPatientIndex = index;
-          renderPatientSelector();
-          renderRecommendation(sorted[index]);
-        };
-        list.appendChild(btn);
-      });
-
-      if (selectedPatientIndex === null && sorted.length > 0) {
-        selectedPatientIndex = 0;
-        renderPatientSelector();
-        renderRecommendation(sorted[0]);
-      }
-    }
-
-    function getLatestAction(patient) {
-      const key = patientKey(patient);
-      const history = actionLog[key] || [];
-      return history.length ? history[0] : null;
-    }
-
-    function renderHistory(patient) {
-      const historyBox = document.getElementById("historyBox");
-      const historyList = document.getElementById("historyList");
-
-      if (!patient) {
-        historyBox.style.display = "none";
-        historyList.innerHTML = "";
-        return;
-      }
-
-      const key = patientKey(patient);
-      const history = actionLog[key] || [];
-
-      if (!history.length) {
-        historyBox.style.display = "block";
-        historyList.innerHTML = `<li>No action documented yet.</li>`;
-        return;
-      }
-
-      historyBox.style.display = "block";
-      historyList.innerHTML = "";
-
-      history.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = `${item.action} — ${formatDateTime(item.time)}`;
-        historyList.appendChild(li);
-      });
-    }
-
-    function renderRecommendation(patient) {
-      const info = document.getElementById("selectedPatientInfo");
-      const box = document.getElementById("recommendationBox");
-      const title = document.getElementById("recommendationTitle");
-      const text = document.getElementById("recommendationText");
-      const steps = document.getElementById("recommendationSteps");
-      const banner = document.getElementById("autoEscalationBanner");
-
-      if (!patient) {
-        info.textContent = "Select a patient to view details.";
-        box.style.display = "none";
-        banner.style.display = "none";
-        renderHistory(null);
-        return;
-      }
-
-      info.innerHTML = `
-        <strong>${patient.name}</strong><br>
-        <span class="muted-text">${patient.condition} • ${patient.status.toUpperCase()} • ERS ${patient.score} • ${patient.trend || "→ Stable"}</span>
-      `;
-
-      const recommendation = getRecommendation(patient);
-      title.textContent = recommendation.title;
-      text.textContent = recommendation.text;
-      steps.innerHTML = "";
-
-      recommendation.steps.forEach(step => {
-        const li = document.createElement("li");
-        li.textContent = step;
-        steps.appendChild(li);
-      });
-
-      const autoEscalation = getAutoEscalationMessage(patient);
-      banner.className = autoEscalation.className;
-      banner.textContent = autoEscalation.text;
-      banner.style.display = "block";
-
-      box.style.display = "block";
-      renderHistory(patient);
-    }
-
-    function logAction(action) {
-      const sorted = sortedPatients();
-      const patient = sorted[selectedPatientIndex];
-
-      if (!patient) return;
-
-      const key = patientKey(patient);
-      if (!actionLog[key]) actionLog[key] = [];
-
-      actionLog[key].unshift({
-        action,
-        time: new Date().toISOString()
-      });
-
-      localStorage.setItem("cp_action_log", JSON.stringify(actionLog));
-      renderPriorityQueue();
-      renderRecommendation(patient);
-      renderCoordinatorSummary();
-    }
-
-    function renderAll() {
-      localStorage.setItem("cp_demo_patients", JSON.stringify(patients));
-      renderSummary();
-      renderCoordinatorSummary();
-      renderPriorityQueue();
-      renderPatientTable();
-      selectedPatientIndex = null;
-      renderPatientSelector();
-      drawTrendChart("teamTrendChart", getTrendHistory());
-    }
-
-    function loadDemoPatients() {
-      patients = [
-        {
-          name: patientName || "Katherine Owen",
-          condition: patientCondition || "CHF",
-          status: localStorage.getItem("carepath_status") || "green",
-          score: Number(localStorage.getItem("carepath_score")) || 92,
-          trend: getTrendDirection(),
-          weight: localStorage.getItem("carepath_weight") || "178",
-          meds: localStorage.getItem("carepath_meds") || "Yes",
-          support: patientSupport || "Yes",
-          submittedAt: new Date().toISOString()
-        },
-        {
-          name: "Maria Gonzalez",
-          condition: "CHF",
-          status: "red",
-          score: 42,
-          trend: "↓ Declining",
-          weight: "211",
-          meds: "No",
-          support: "No",
-          submittedAt: new Date(Date.now() - 1000 * 60 * 18).toISOString()
-        },
-        {
-          name: "James Carter",
-          condition: "Diabetes",
-          status: "yellow",
-          score: 74,
-          trend: "↓ Declining",
-          weight: "196",
-          meds: "Not sure",
-          support: "Yes",
-          submittedAt: new Date(Date.now() - 1000 * 60 * 42).toISOString()
-        },
-        {
-          name: "Linda Brooks",
-          condition: "Post-Surgery",
-          status: "green",
-          score: 96,
-          trend: "↑ Improving",
-          weight: "154",
-          meds: "Yes",
-          support: "Yes",
-          submittedAt: new Date(Date.now() - 1000 * 60 * 63).toISOString()
-        },
-        {
-          name: "Robert Miles",
-          condition: "CHF",
-          status: "yellow",
-          score: 68,
-          trend: "→ Stable",
-          weight: "203",
-          meds: "Yes",
-          support: "No",
-          submittedAt: new Date(Date.now() - 1000 * 60 * 95).toISOString()
-        }
-      ];
-
-      renderAll();
-    }
-
-    function clearDemoPatients() {
-      patients = [];
-      localStorage.removeItem("cp_demo_patients");
-      localStorage.removeItem("cp_action_log");
-      actionLog = {};
-      renderAll();
-    }
-
-    function goToPatientHome() {
-      window.location.href = "patient.html";
-    }
-
-    function goToOnboarding() {
-      window.location.href = "index.html";
-    }
-
-    renderAll();
-  </script>
 </body>
 </html>
